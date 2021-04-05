@@ -1,26 +1,31 @@
 # Power regression pipelines for MEG/EEG signals
 
-![Build](https://github.com/DavidSabbagh/meegpowreg/workflows/tests/badge.svg)
+<!-- ![Build](https://github.com/DavidSabbagh/meegpowreg/workflows/tests/badge.svg) -->
 ![Codecov](https://codecov.io/gh/DavidSabbagh/meegpowreg/branch/master/graph/badge.svg)
 
 ## Summary
 
 This library implements the methods used in the following articles:
 
-[1] David Sabbagh, Pierre Ablin, Gaël Varoquaux, Alexandre Gramfort, and Denis A. Engemann.
-Predictive regression modeling with MEG/EEG: from source power to signals and cognitive states.
-*NeuroImage*, page 116893,2020. ISSN 1053-8119.
-<https://www.sciencedirect.com/science/article/pii/S1053811920303797>
+	[1] D. Sabbagh, P. Ablin, G. Varoquaux, A. Gramfort, and D. A. Engemann.
+	Predictive regression modeling with MEG/EEG: from source power 
+	to signals and cognitive states.
+	*NeuroImage*, page 116893,2020. ISSN 1053-8119.
+	https://www.sciencedirect.com/science/article/pii/S1053811920303797
 
-[2] David Sabbagh, Pierre Ablin, Gael Varoquaux, Alexandre Gramfort, and Denis A. Engemann.
-Manifold-regression to predict from MEG/EEG brain signals without source modeling.
-*NeurIPS* (Advances in Neural Information Processing Systems) 32.
-<https://papers.nips.cc/paper/8952-manifold-regression-to-predict-from-megeeg-brain-signals-without-source-modeling>
+	[2] D. Sabbagh, P. Ablin, G. Varoquaux, A. Gramfort, and D. A. Engemann.
+	Manifold-regression to predict from MEG/EEG brain signals 
+	without source modeling.
+	*NeurIPS* (Advances in Neural Information Processing Systems) 32.
+	https://papers.nips.cc/paper/8952-manifold-regression-to-predict-
+	from-megeeg-brain-signals-without-source-modeling
 
-[3] Denis A. Engemann, Oleh Kozynets, David Sabbagh, Guillaume Lemaître, Gaël Varoquaux, Franziskus Liem, and Alexandre Gramfort.
-Combining magnetoencephalography with magnetic resonance imaging enhances learning of surrogate-biomarkers.
-*eLife*, 9:e54055, 2020
-<https://elifesciences.org/articles/54055>
+	[3] D. A. Engemann, O. Kozynets, D. Sabbagh, G. Lemaître, G. Varoquaux,
+	F. Liem, and A. Gramfort
+	Combining magnetoencephalography with magnetic resonance imaging 
+	enhances learning of surrogate-biomarkers.
+	*eLife*, 9:e54055, 2020
+	https://elifesciences.org/articles/54055
 
 ## Installation of Python package
 
@@ -74,15 +79,15 @@ features, _ = compute_features(raw, fbands=fbands)
 ### make_pipelines 
 
 The following models are implemented:
-- *riemann*
-- *lw_riemann*
-- *diag*
-- *logdiag*
-- *random*
-- *naive*
-- *spoc*
-- *riemann_wass*
-- *dummy*
+- riemann
+- lw_riemann
+- diag
+- logdiag
+- random
+- naive
+- spoc
+- riemann_wass
+- dummy
 
 Use case example:
 
@@ -118,9 +123,9 @@ model.fit(X_df, y)
 If you use this code please cite:
 
 	D. Sabbagh, P. Ablin, G. Varoquaux, A. Gramfort, and D.A. Engemann.
-	Predictive regression modeling with MEG/EEG: from source power to signals
-	and cognitive states.
+	Predictive regression modeling with MEG/EEG: from source power 
+	to signals and cognitive states.
 	*NeuroImage*, page 116893,2020. ISSN 1053-8119.
-	<https://www.sciencedirect.com/science/article/pii/S1053811920303797>
+	https://www.sciencedirect.com/science/article/pii/S1053811920303797
 
 
