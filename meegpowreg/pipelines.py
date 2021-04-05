@@ -1,5 +1,5 @@
 import numpy as np
-from covpredict.featuring import (
+from meegpowreg.featuring import (
         Diag,
         LogDiag,
         ExpandFeatures,
@@ -7,7 +7,7 @@ from covpredict.featuring import (
         RiemannSnp,
         NaiveVec
         )
-from covpredict.spfiltering import (
+from meegpowreg.spfiltering import (
         ProjIdentitySpace,
         ProjCommonSpace,
         ProjLWSpace,
