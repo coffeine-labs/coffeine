@@ -57,7 +57,7 @@ Use case example:
 import os
 import mne
 
-from covpredict.power_features import compute_features
+from meegpowreg.power_features import compute_features
 
 data_path = mne.datasets.sample.data_path()
 data_dir = os.path.join(data_path, 'MEG', 'sample')
@@ -89,10 +89,9 @@ The following models are implemented:
 Use case example:
 
 ```python
-
 import numpy as np
 import pandas as pd
-from covpredict.pipelines import make_pipelines
+from meegpowreg.pipelines import make_pipelines
 
 fbands = {'alpha': (8.0, 15.0), 'beta': (15.0, 30.0)}
 n_fb = len(fbands)
@@ -102,8 +101,8 @@ n_ch = 4
 # Toy data
 Xcov = np.random.randn(n_sub, n_fb, n_ch, n_ch)
 for sub in range(n_sub):
-for fb in range(n_fb):
-Xcov[sub, fb] = Xcov[sub, fb] @ Xcov[sub, fb].T
+    for fb in range(n_fb):
+        Xcov[sub, fb] = Xcov[sub, fb] @ Xcov[sub, fb].T
 Xcov = list(Xcov.transpose((1, 0, 2, 3)))
 X_df = pd.DataFrame(dict(zip(list(fbands.keys()), map(list, Xcov))))
 X_df['drug'] = np.random.randint(2, size=n_sub)

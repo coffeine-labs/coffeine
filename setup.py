@@ -1,8 +1,8 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="covpredict",
-    description="covpredict",
+    name="meegpowreg",
+    description="meegpowreg",
     keywords="",
     packages=find_packages(),
     python_requires=">=3",
