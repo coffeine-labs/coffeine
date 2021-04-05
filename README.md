@@ -28,15 +28,13 @@ Combining magnetoencephalography with magnetic resonance imaging enhances learni
 <!--  -->
 <!--   `$ pip install meegpowreg` -->
 
-You can also simply clone it, and then do:
+You can clone this library, and then do:
 
-    `$ pip install -e .`
+  `$ pip install -e .`
 
-To check that everything worked, the command
+Everything worked if the following command do not return any error:
 
-    `$ python -c 'import meegpowreg'`
-
-should not return any error.
+  `$ python -c 'import meegpowreg'`
 
 ## Use with Python
 
@@ -120,7 +118,8 @@ model.fit(X_df, y)
 If you use this code please cite:
 
 	D. Sabbagh, P. Ablin, G. Varoquaux, A. Gramfort, and D.A. Engemann.
-	Predictive regression modeling with MEG/EEG: from source power to signals and cognitive states.
+	Predictive regression modeling with MEG/EEG: from source power to signals
+	and cognitive states.
 	*NeuroImage*, page 116893,2020. ISSN 1053-8119.
 	<https://www.sciencedirect.com/science/article/pii/S1053811920303797>
 
