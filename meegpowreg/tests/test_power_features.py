@@ -15,6 +15,7 @@ def test_compute_features():
     raw = raw.copy().crop(0, 200).pick(
         list(range(2)) + list(range(330, 333))  # take some MEG and EEG
     )
+    raw.info.normalize_proj()
     features, res = compute_features(raw, fbands=fbands)
     n_channels = len(raw.ch_names)
     n_freqs = len(features['freqs'])
