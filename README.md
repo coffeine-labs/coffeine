@@ -1,7 +1,7 @@
 # Power regression pipelines for MEG/EEG signals
 
 ![Build](https://github.com/DavidSabbagh/meegpowreg/workflows/tests/badge.svg)
-![Codecov](https://codecov.io/gh/DavidSabbagh/meegpowreg/branch/main/graph/badge.svg)
+<!-- ![Codecov](https://codecov.io/gh/DavidSabbagh/meegpowreg/branch/main/graph/badge.svg) -->
 
 ## Summary
 
@@ -14,7 +14,7 @@ Predictive regression modeling with MEG/EEG: from source power to signals and co
 
 [2] D. Sabbagh, P. Ablin, G. Varoquaux, A. Gramfort,
 and D. A. Engemann.
-Manifold-regression to predict from MEG/EEG brain signals 
+Manifold-regression to predict from MEG/EEG brain signals
 without source modeling.
 *NeurIPS* (Advances in Neural Information Processing Systems) 32.
 <https://papers.nips.cc/paper/8952-manifold-regression-to-predict-from-megeeg-brain-signals-without-source-modeling>
@@ -43,6 +43,7 @@ Everything worked if the following command do not return any error:
 ### compute_features
 
 Compute power features from raw M/EEG data:
+
 - The power spectral density
 - The spectral covariance matrices
 - The cospectral covariance matrices
@@ -73,9 +74,10 @@ fbands = {'alpha': (8.0, 15.0), 'beta': (15.0, 30.0)}
 features, _ = compute_features(raw, fbands=fbands)
 ```
 
-### make_pipelines 
+### make_pipelines
 
 The following models are implemented:
+
 - riemann
 - lw_riemann
 - diag
@@ -118,10 +120,8 @@ model.fit(X_df, y)
 
 If you use this code please cite:
 
-	D. Sabbagh, P. Ablin, G. Varoquaux, A. Gramfort, and D.A. Engemann.
-	Predictive regression modeling with MEG/EEG: from source power 
-	to signals and cognitive states.
-	*NeuroImage*, page 116893,2020. ISSN 1053-8119.
-	https://www.sciencedirect.com/science/article/pii/S1053811920303797
-
-
+  D. Sabbagh, P. Ablin, G. Varoquaux, A. Gramfort, and D.A. Engemann.
+  Predictive regression modeling with MEG/EEG: from source power
+  to signals and cognitive states.
+  *NeuroImage*, page 116893,2020. ISSN 1053-8119.
+  https://www.sciencedirect.com/science/article/pii/S1053811920303797
