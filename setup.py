@@ -42,7 +42,8 @@ if __name__ == "__main__":
               'matplotlib>=2.0.0',
               'pandas',
               'pyriemann',
-              'scikit-learn>=0.23',
+              'scikit-learn==0.23.2',  # due to pyriemann
+              # 'scikit-learn>=0.23',
               'mne>=0.20'
           ],
           classifiers=[
