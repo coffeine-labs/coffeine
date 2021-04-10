@@ -4,8 +4,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import mne
 
-from covpredict.power_features import compute_features
-from covpredict.spfiltering import ProjSPoCSpace
+from meegpowreg.power_features import compute_features
+from meegpowreg.spfiltering import ProjSPoCSpace
 
 
 def test_spfiltering():
