@@ -13,6 +13,7 @@ pipelines = make_pipelines(
     expand=True
 )
 
+
 @pytest.fixture
 def toy_data():
     Xcov = np.random.randn(n_sub, n_fb, n_ch, n_ch)

@@ -36,6 +36,6 @@ def test_spfiltering():
     n_compo = X.shape[1]
     fig, ax = plt.subplots(1, 2 * n_compo)
     spoc.plot_patterns(info=info, components=None, show=False,
-                    name_format='', axes=ax[:n_compo], colorbar=False)
+                       name_format='', axes=ax[:n_compo], colorbar=False)
     spoc.plot_filters(info=info, components=None, show=False,
-                    name_format='', axes=ax[n_compo:], colorbar=False)
+                      name_format='', axes=ax[n_compo:], colorbar=False)
