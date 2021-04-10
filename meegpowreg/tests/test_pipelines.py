@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import pytest
-from covpredict.pipelines import make_pipelines
+from meegpowreg.pipelines import make_pipelines
 
 fbands = {'alpha': (8.0, 15.0), 'beta': (15.0, 30.0)}
 n_sub = 10
@@ -12,6 +12,7 @@ pipelines = make_pipelines(
     fb_cols=fbands.keys(),
     expand=True
 )
+
 
 @pytest.fixture
 def toy_data():

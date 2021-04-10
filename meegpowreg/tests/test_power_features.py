@@ -1,7 +1,7 @@
 import os
 import mne
 
-from covpredict.power_features import compute_features
+from meegpowreg.power_features import compute_features
 
 data_path = mne.datasets.sample.data_path()
 data_dir = os.path.join(data_path, 'MEG', 'sample')

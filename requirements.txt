@@ -3,5 +3,5 @@ scipy>=0.18.0
 matplotlib>=2.0.0
 pandas
 pyriemann
-scikit-learn>=0.23
+scikit-learn==0.23.2
 mne>=0.20 

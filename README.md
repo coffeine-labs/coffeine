@@ -1,7 +1,7 @@
 # Power regression pipelines for MEG/EEG signals
 
-<!-- ![Build](https://github.com/DavidSabbagh/meegpowreg/workflows/tests/badge.svg) -->
-![Codecov](https://codecov.io/gh/DavidSabbagh/meegpowreg/branch/master/graph/badge.svg)
+![Build](https://github.com/DavidSabbagh/meegpowreg/workflows/tests/badge.svg)
+![Codecov](https://codecov.io/gh/DavidSabbagh/meegpowreg/branch/main/graph/badge.svg)
 
 ## Summary
 

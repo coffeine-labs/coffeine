@@ -4,8 +4,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import mne
 
-from covpredict.power_features import compute_features
-from covpredict.spfiltering import ProjSPoCSpace
+from meegpowreg.power_features import compute_features
+from meegpowreg.spfiltering import ProjSPoCSpace
 
 
 def test_spfiltering():
@@ -36,6 +36,6 @@ def test_spfiltering():
     n_compo = X.shape[1]
     fig, ax = plt.subplots(1, 2 * n_compo)
     spoc.plot_patterns(info=info, components=None, show=False,
-                    name_format='', axes=ax[:n_compo], colorbar=False)
+                       name_format='', axes=ax[:n_compo], colorbar=False)
     spoc.plot_filters(info=info, components=None, show=False,
-                    name_format='', axes=ax[n_compo:], colorbar=False)
+                      name_format='', axes=ax[n_compo:], colorbar=False)

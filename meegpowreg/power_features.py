@@ -40,7 +40,7 @@ def _compute_xfreq_covs(epochs, fbands):
 def _compute_cosp_covs(epochs, n_fft, n_overlap, fmin, fmax, fs):
     X = epochs.get_data()
     cosp_covs = CospCovariances(window=n_fft, overlap=n_overlap/n_fft,
-                                   fmin=fmin, fmax=fmax, fs=fs)
+                                fmin=fmin, fmax=fmax, fs=fs)
     return cosp_covs.transform(X).mean(axis=0).transpose((2, 0, 1))
 
 
