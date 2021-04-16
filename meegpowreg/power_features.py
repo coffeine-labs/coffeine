@@ -67,7 +67,48 @@ def compute_features(
         fbands={'alpha': (8.0, 12.0)},
         clean_func=lambda x: x,
         n_jobs=1):
-    """Compute features from raw data or clean epochs."""
+    """Compute features from raw data or clean epochs.
+
+    Parameters
+    ----------
+    inst : Raw object | Epochs object
+        An instance of Raw or Epochs.
+    duration : float
+        The length of the epochs. If nothing is provided, defaults to 60.
+    shift : float
+        The duration to separate events by. If nothing is provided,
+        defaults to 10.
+    n_fft : int
+        The length of FFT used for computing power spectral density (PSD)
+        using Welch's method. If nothing is provided, defaults to 512.
+    n_overlap : int
+        The number of points of overlap between segments for PSD computation
+        and for the estimation of cospectral covariance matrix.
+        If nothing is provided, defaults to 256.
+    fs : float
+        The sampling frequency of the signal for the estimation of cospectral
+        covariance matrix. If nothing is provided, defaults to 63.0.
+    fmin : int
+        The minimal frequency to be returned for the estimation of cospectral
+        covariance matrix. If nothing is provided, defaults to 0.
+    fmax : int
+        The maximal frequency to be returned for the estimation of cospectral
+        covariance matrix. If nothing is provided, defaults to 30.
+    fbands : dict
+        The frequency band with which inst is filtered. If nothing is provided,
+        defaults to {'alpha': (8.0, 12.0)}.
+    clean_func : lambda function
+        If nothing is provided, defaults to lambda x: x.
+    n_jobs : int
+        If nothing is provided, defaults to 1.
+
+    Returns
+    -------
+    features : dict
+        The features extracted.
+    res : dict
+        The number of epochs, good epochs and clean epochs.
+    """
     if isinstance(inst, BaseRaw):
         events = mne.make_fixed_length_events(inst, id=3000,
                                               start=0,
