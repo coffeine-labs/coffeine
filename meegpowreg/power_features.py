@@ -67,8 +67,7 @@ def compute_features(
         fbands={'alpha': (8.0, 12.0)},
         clean_func=lambda x: x,
         n_jobs=1):
-    #doc str
-
+    """Compute features from raw data or clean epochs."""
     if isinstance(inst, BaseRaw):
         events = mne.make_fixed_length_events(inst, id=3000,
                                               start=0,
@@ -85,7 +84,7 @@ def compute_features(
         epochs_clean = inst
         covs = _compute_covs_epochs(epochs_clean, fbands)
     else:
-        raise ValueError('Inst must be raw or epochs')
+        raise ValueError('Inst must be raw or epochs.')
 
     psds_clean, freqs = mne.time_frequency.psd_welch(
         epochs_clean, fmin=fmin, fmax=fmax, n_fft=n_fft, n_overlap=n_overlap,
