@@ -36,7 +36,8 @@ def make_pipelines(
 
     # Define intermediate Transformers
     vec_riemann = make_column_transformer(
-        *[(make_pipeline(ProjCommonSpace(scale=scale, n_compo=n_compo, reg=reg),
+        *[(make_pipeline(ProjCommonSpace(scale=scale, n_compo=n_compo,
+                                         reg=reg),
                          Riemann(metric=metric)), col)
           for col in fb_cols],
         remainder='passthrough'
@@ -55,13 +56,13 @@ def make_pipelines(
     )
     vec_logdiag = make_column_transformer(
         *[(make_pipeline(ProjIdentitySpace(),
-                         LogDiag()),col)
+                         LogDiag()), col)
           for col in fb_cols],
         remainder='passthrough'
     )
     vec_random = make_column_transformer(
         *[(make_pipeline(ProjRandomSpace(n_compo=n_compo),
-                        LogDiag()), col)
+                         LogDiag()), col)
           for col in fb_cols],
         remainder='passthrough'
     )
