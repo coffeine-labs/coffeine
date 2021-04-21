@@ -22,121 +22,80 @@ from sklearn.linear_model import RidgeCV
 
 
 def make_pipelines(
-        fb_cols=('low', 'delta', 'theta', 'alpha', 'beta'),
+        frequency_bands=('low', 'delta', 'theta', 'alpha', 'beta'),
         scale='auto',
-        n_compo='full',
+        n_components='full',
         reg=1.e-05,
-        metric='riemann',
+        pipeline='riemann',
         shrink=1,
         rank='full',  # for RiemannWass
         method='upper',  # for NaiveVec: 'upper' 'upperlog' 'logdiag+upper'
-        expand=False,
-        # if expand=True, learns the interaction effect w/ last binary column
+        expand_feautures=None,
+        # if expand=True, learns the interaction effect w/ last binary column,
+        expander_column=-1,
+        preprocessor=None,
+        estimator=None,
         ridge_alphas=np.logspace(-3, 5, 100)):
+    
+    estimator_ = None
+    preprocessor_ = None
 
-    # Define intermediate Transformers
-    vec_riemann = make_column_transformer(
-        *[(make_pipeline(ProjCommonSpace(scale=scale, n_compo=n_compo,
-                                         reg=reg),
-                         Riemann(metric=metric)), col)
-          for col in fb_cols],
-        remainder='passthrough'
-    )
-    vec_lw_riemann = make_column_transformer(
-        *[(make_pipeline(ProjLWSpace(shrink=shrink),
-                         Riemann(metric=metric)), col)
-          for col in fb_cols],
-        remainder='passthrough'
-    )
-    vec_diag = make_column_transformer(
-        *[(make_pipeline(ProjIdentitySpace(),
-                         Diag()), col)
-          for col in fb_cols],
-        remainder='passthrough'
-    )
-    vec_logdiag = make_column_transformer(
-        *[(make_pipeline(ProjIdentitySpace(),
-                         LogDiag()), col)
-          for col in fb_cols],
-        remainder='passthrough'
-    )
-    vec_random = make_column_transformer(
-        *[(make_pipeline(ProjRandomSpace(n_compo=n_compo),
-                         LogDiag()), col)
-          for col in fb_cols],
-        remainder='passthrough'
-    )
-    vec_naive = make_column_transformer(
-        *[(make_pipeline(ProjIdentitySpace(),
-                         NaiveVec(method=method)), col)
-          for col in fb_cols],
-        remainder='passthrough'
-    )
-    vec_spoc = make_column_transformer(
-        *[(make_pipeline(ProjSPoCSpace(n_compo=n_compo, scale=scale, reg=reg,
-                                       shrink=shrink),
-                         LogDiag()), col)
-          for col in fb_cols],
-        remainder='passthrough'
-    )
-    vec_riemann_wass = make_column_transformer(
-        *[(make_pipeline(ProjIdentitySpace(),
-                         RiemannSnp(rank=rank)), col)
-          for col in fb_cols],
-        remainder='passthrough'
-    )
-    expander = make_column_transformer(
-        *[(ExpandFeatures(expand=expand), [col, -1])
-          for col in range(len(fb_cols))],
-        ('drop', -1)
-    )
+    if estimator is None:
+        estimator_ = RidgeCV(alphas=ridge_alphas)
+    if preprocessor_ is None:
+        preprocessor_ = StandardScaler()
 
-    # Define pipelines
-    pipelines = {
-        'riemann': make_pipeline(
-            vec_riemann,
-            expander,
-            StandardScaler(),
-            RidgeCV(alphas=ridge_alphas)),
-        'lw_riemann': make_pipeline(
-            vec_lw_riemann,
-            expander,
-            StandardScaler(),
-            RidgeCV(alphas=ridge_alphas)),
-        'diag': make_pipeline(
-            vec_diag,
-            expander,
-            StandardScaler(),
-            RidgeCV(alphas=ridge_alphas)),
-        'logdiag': make_pipeline(
-            vec_logdiag,
-            expander,
-            StandardScaler(),
-            RidgeCV(alphas=ridge_alphas)),
-        'random': make_pipeline(
-            vec_random,
-            expander,
-            StandardScaler(),
-            RidgeCV(alphas=ridge_alphas)),
-        'naive': make_pipeline(
-            vec_naive,
-            expander,
-            StandardScaler(),
-            RidgeCV(alphas=ridge_alphas)),
-        'spoc': make_pipeline(
-            vec_spoc,
-            expander,
-            StandardScaler(),
-            RidgeCV(alphas=ridge_alphas)),
-        'riemann_wass': make_pipeline(
-            vec_riemann_wass,
-            expander,
-            StandardScaler(),
-            RidgeCV(alphas=ridge_alphas)),
-        'dummy': make_pipeline(
-            vec_logdiag,
-            expander,
-            StandardScaler(),
-            DummyRegressor())
-    }
-    return pipelines
+    expander = None   
+    if expand_feautures is not None:
+        expander = make_column_transformer(
+            *[(ExpandFeatures(expand=True), [band, expander_column])
+              for band in frequency_bands],
+            ('drop', expander_column))
+ 
+    def _get_projector_vectorizer(steps):
+        steps_ = [k(**v) for k, v in steps]
+        return [(make_pipeline(*steps_), band) for band in frequency_bands]
+    
+    steps = list()
+    if pipeline == 'riemann':
+        steps = [
+            (ProjCommonSpace, dict(scale=scale,
+                                   n_compo=n_components,
+                                   reg=reg)),
+            (Riemann, dict(metric='riemann'))]
+    elif pipeline == 'lw_riemann':
+        steps = [(ProjLWSpace, dict(shrink=shrink)),
+                 (Riemann, dict(metric='riemann'))]
+    elif pipeline == 'diag':
+        steps = [(ProjIdentitySpace, dict()),
+                 (Diag, dict())]
+    elif pipeline == 'logdiag':
+        steps = [(ProjIdentitySpace, dict()),
+                 (LogDiag, dict())]
+    elif pipeline == 'random':
+        steps = [(ProjRandomSpace, dict(n_compo=n_components)),
+                 (LogDiag, dict())]
+    elif pipeline == 'naive':
+        steps = [(ProjIdentitySpace, dict()),
+                 (NaiveVec, dict(method=method))]
+    elif pipeline == 'spoc':
+        steps = [(ProjSPoCSpace, dict(n_compo=n_components, scale=scale,
+                                      reg=reg,
+                                      shrink=shrink)),
+                 (LogDiag, dict())]
+    elif pipeline == 'riemann_wasserstein':
+        steps = [(ProjIdentitySpace, dict()),
+                 (RiemannSnp, dict(rank=rank))]
+
+    pipeline_steps = [
+        make_column_transformer(
+            *_get_projector_vectorizer(steps),
+            remainder='passthrough'),
+        preprocessor,
+        estimator]
+
+    if expander is not None:
+        pipeline_steps.insert(1, expander)
+    filter_bank = make_pipeline(*pipeline_steps)
+
+    return filter_bank

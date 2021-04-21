@@ -3,32 +3,32 @@ import pandas as pd
 import pytest
 from meegpowreg.pipelines import make_pipelines
 
-fbands = {'alpha': (8.0, 15.0), 'beta': (15.0, 30.0)}
-n_sub = 10
-n_ch = 4
-n_fb = len(fbands)
-
-pipelines = make_pipelines(
-    fb_cols=fbands.keys(),
-    expand=True
-)
-
+frequency_bands = {'alpha': (8.0, 15.0), 'beta': (15.0, 30.0)}
+n_subjects = 10
+n_channels = 4
+n_frequency_bands = len(frequency_bands)
 
 @pytest.fixture
 def toy_data():
-    Xcov = np.random.randn(n_sub, n_fb, n_ch, n_ch)
-    for sub in range(n_sub):
-        for fb in range(n_fb):
+    Xcov = np.random.randn(
+        n_subjects, n_frequency_bands, n_channels, n_channels)
+    for sub in range(n_subjects):
+        for fb in range(n_frequency_bands):
             Xcov[sub, fb] = Xcov[sub, fb] @ Xcov[sub, fb].T
     Xcov = list(Xcov.transpose((1, 0, 2, 3)))
-    df = pd.DataFrame(dict(zip(list(fbands.keys()), map(list, Xcov))))
-    df['drug'] = np.random.randint(2, size=n_sub)
-    y = np.random.randn(len(df))
+    df = pd.DataFrame(
+        dict(zip(list(frequency_bands.keys()),
+                 map(list, Xcov))))
+    df['drug'] = np.random.randint(2, size=n_subjects)
+    rng = np.random.RandomState(2021)
+    y = rng.randn(len(df))
     return df, y
 
 
-@pytest.mark.parametrize('pipeline_name', pipelines)
-def test_pipelines(pipeline_name, toy_data):
-    model = pipelines[pipeline_name]
+def test_pipelines(toy_data):
+    model = make_pipelines(
+        frequency_bands=frequency_bands.keys(),
+        expand_feautures=True,
+        expander_column="drug")
     X_df, y = toy_data
     model.fit(X_df, y)
