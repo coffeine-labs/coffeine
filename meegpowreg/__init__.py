@@ -21,10 +21,10 @@
 
 __version__ = '0.1.dev'
 
-from .featuring import Riemann, Diag, LogDiag, ExpandFeatures, NaiveVec, RiemannSnp  # noqa
+from .covariance_transformers import Riemann, Diag, LogDiag, ExpandFeatures, NaiveVec, RiemannSnp  # noqa
 
 from .pipelines import make_pipelines  # noqa
 
 from .power_features import compute_features  # noqa
 
-from .spfiltering import ProjIdentitySpace, ProjCommonSpace, ProjLWSpace, ProjRandomSpace, ProjSPoCSpace  # noqa
+from .spatial_filters import ProjIdentitySpace, ProjCommonSpace, ProjLWSpace, ProjRandomSpace, ProjSPoCSpace  # noqa
