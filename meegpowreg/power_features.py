@@ -43,8 +43,6 @@ def _compute_xfreq_covs(epochs, fbands):
     cov = mne.compute_covariance(epochs_final, method='oas', rank=None)
     corr = np.corrcoef(
         epochs_final.get_data().transpose((1, 0, 2)).reshape(n_chan, -1))
-    #  fig = plt.matshow(corr, cmap='RdBu', vmin=-1, vmax=1)
-    #  plt.colorbar(fig, fraction=0.046, pad=0.04) # proper size
     return cov.data, corr
 
 

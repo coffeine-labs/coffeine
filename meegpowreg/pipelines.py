@@ -1,19 +1,19 @@
 import numpy as np
-from meegpowreg.featuring import (
-        Diag,
-        LogDiag,
-        ExpandFeatures,
-        Riemann,
-        RiemannSnp,
-        NaiveVec
-        )
-from meegpowreg.spfiltering import (
-        ProjIdentitySpace,
-        ProjCommonSpace,
-        ProjLWSpace,
-        ProjRandomSpace,
-        ProjSPoCSpace
-        )
+from meegpowreg.covariance_transformers import (
+    Diag,
+    LogDiag,
+    ExpandFeatures,
+    Riemann,
+    RiemannSnp,
+    NaiveVec)
+
+from meegpowreg.spatial_filters import (
+    ProjIdentitySpace,
+    ProjCommonSpace,
+    ProjLWSpace,
+    ProjRandomSpace,
+    ProjSPoCSpace)
+
 from sklearn.compose import make_column_transformer
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
@@ -117,59 +117,59 @@ def make_pipelines(
 
     # Define pipelines
     pipelines = {
-                'riemann': make_pipeline(
-                                vec_riemann,
-                                expander,
-                                StandardScaler(),
-                                RidgeCV(alphas=ridge_alphas)
-                                ),
-                'lw_riemann': make_pipeline(
-                                vec_lw_riemann,
-                                expander,
-                                StandardScaler(),
-                                RidgeCV(alphas=ridge_alphas)
-                                ),
-                'diag': make_pipeline(
-                               vec_diag,
-                               expander,
-                               StandardScaler(),
-                               RidgeCV(alphas=ridge_alphas)
-                               ),
-                'logdiag': make_pipeline(
-                               vec_logdiag,
-                               expander,
-                               StandardScaler(),
-                               RidgeCV(alphas=ridge_alphas)
-                               ),
-                'random': make_pipeline(
-                               vec_random,
-                               expander,
-                               StandardScaler(),
-                               RidgeCV(alphas=ridge_alphas)
-                               ),
-                'naive': make_pipeline(
-                                vec_naive,
-                                expander,
-                                StandardScaler(),
-                                RidgeCV(alphas=ridge_alphas)
-                                ),
-                'spoc': make_pipeline(
-                                vec_spoc,
-                                expander,
-                                StandardScaler(),
-                                RidgeCV(alphas=ridge_alphas)
-                                ),
-                'riemann_wass': make_pipeline(
-                                vec_riemann_wass,
-                                expander,
-                                StandardScaler(),
-                                RidgeCV(alphas=ridge_alphas)
-                                ),
-                'dummy': make_pipeline(
-                               vec_logdiag,
-                               expander,
-                               StandardScaler(),
-                               DummyRegressor()
-                               ),
-                }
+            'riemann': make_pipeline(
+                            vec_riemann,
+                            expander,
+                            StandardScaler(),
+                            RidgeCV(alphas=ridge_alphas)
+                            ),
+            'lw_riemann': make_pipeline(
+                            vec_lw_riemann,
+                            expander,
+                            StandardScaler(),
+                            RidgeCV(alphas=ridge_alphas)
+                            ),
+            'diag': make_pipeline(
+                            vec_diag,
+                            expander,
+                            StandardScaler(),
+                            RidgeCV(alphas=ridge_alphas)
+                            ),
+            'logdiag': make_pipeline(
+                            vec_logdiag,
+                            expander,
+                            StandardScaler(),
+                            RidgeCV(alphas=ridge_alphas)
+                            ),
+            'random': make_pipeline(
+                            vec_random,
+                            expander,
+                            StandardScaler(),
+                            RidgeCV(alphas=ridge_alphas)
+                            ),
+            'naive': make_pipeline(
+                            vec_naive,
+                            expander,
+                            StandardScaler(),
+                            RidgeCV(alphas=ridge_alphas)
+                            ),
+            'spoc': make_pipeline(
+                            vec_spoc,
+                            expander,
+                            StandardScaler(),
+                            RidgeCV(alphas=ridge_alphas)
+                            ),
+            'riemann_wass': make_pipeline(
+                            vec_riemann_wass,
+                            expander,
+                            StandardScaler(),
+                            RidgeCV(alphas=ridge_alphas)
+                            ),
+            'dummy': make_pipeline(
+                            vec_logdiag,
+                            expander,
+                            StandardScaler(),
+                            DummyRegressor()
+                            ),
+            }
     return pipelines

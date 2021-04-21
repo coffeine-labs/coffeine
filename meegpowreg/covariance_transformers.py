@@ -118,7 +118,6 @@ class Snp(TransformerMixin):
 
     def fit(self, X, y=None, ref=None):
         if ref is None:
-            #  ref = mean_covs(X, rank=self.rank)
             ref = np.mean(X, axis=0)
         Y = to_quotient(ref, self.rank)
         self.reference_ = ref
