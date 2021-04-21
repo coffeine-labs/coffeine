@@ -24,6 +24,16 @@ Combining magnetoencephalography with magnetic resonance imaging enhances learni
 *eLife*, 9:e54055, 2020
 <https://elifesciences.org/articles/54055>
 
+The filter bank pipelines can the thought of as follows:
+
+<img width="1380" alt="meeg_pipelines" src="https://user-images.githubusercontent.com/1908618/115611659-a6d5ab80-a2ea-11eb-935c-006cad4fc8e5.png">
+
+After preprocessing, covariance matrices can be projected to mitigate field spread and deal with rank deficient signals.
+Subsequently, vectorization is performed to extract column features from the variance, covariance or both.
+The Riemannian embedding is special in mititgating field spread and providing vectorization in 1 step.
+It can be combined with dimensionality reduction in the projection step to deal with rank deficinency.
+Finally, a statistical learning algorithm is applied.
+
 ## Installation of Python package
 
 <!-- To install the package, simply do: -->
