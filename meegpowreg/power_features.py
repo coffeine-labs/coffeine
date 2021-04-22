@@ -74,7 +74,7 @@ def compute_features(
     duration : float
         The length of the epochs. If nothing is provided, defaults to 60.
     shift : float
-        The duration to separate events by (sliding shift of the epochs). 
+        The duration to separate events by (sliding shift of the epochs).
         If nothing is provided, defaults to 10.
     n_fft : int
         The length of FFT used for computing power spectral density (PSD)
