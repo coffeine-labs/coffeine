@@ -25,25 +25,21 @@ def make_pipelines(frequency_bands=('low', 'delta', 'theta', 'alpha', 'beta'),
                    pipeline='riemann', projection_params=None,
                    vectorization_params=None, expand_feautures=None,
                    expander_column=None, preprocessor=None, estimator=None):
+    # XXX do proper doc string
     
     # put defaults here for projection and vectorization step
-    projection_params_defaults = {
-        'riemann': dict(scale=1,
-                        n_compo='full',
-                        reg=1.e-05),
+    projection_defaults = {
+        'riemann': dict(scale=1, n_compo='full', reg=1.e-05),
         'lw_riemann': dict(shrink=1),
         'diag': dict(),
         'log_diag': dict(),
         'random': dict(n_compo='full'),
         'naive': dict(),
-        'spoc': dict(n_compo='full',
-                     scale='auto',
-                     reg=1.e-05,
-                     shrink=1),
+        'spoc': dict(n_compo='full', scale='auto', reg=1.e-05, shrink=1),
         'riemann_wasserstein': dict()
     }
 
-    vectorization_params_defaults = {
+    vectorization_defaults = {
         'riemann': dict(metric='riemann'),
         'lw_riemann': dict(metric='riemann'),
         'diag': dict(),
@@ -55,14 +51,15 @@ def make_pipelines(frequency_bands=('low', 'delta', 'theta', 'alpha', 'beta'),
     }
 
     # update defaults
-    projection_params_ = projection_params_defaults[pipeline]
+    projection_params_ = projection_defaults[pipeline]
     if projection_params is not None:
         projection_params_.update(**projection_params)
         
-    vectorization_params_ = vectorization_params_defaults[pipeline]
+    vectorization_params_ = vectorization_defaults[pipeline]
     if vectorization_params is not None:
         vectorization_params_.update(**vectorization_params)
 
+    # XXX not yet done here
     expander = None
     if expand_feautures is not None:
         expander = make_column_transformer(
