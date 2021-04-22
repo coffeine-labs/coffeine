@@ -120,7 +120,7 @@ def compute_features(
         covs = _compute_covs_raw(inst, clean_events, fbands, duration)
 
     elif isinstance(inst, BaseEpochs):
-        epochs_clean = inst
+        epochs_clean = clean_func(inst)
         covs = _compute_covs_epochs(epochs_clean, fbands)
     else:
         raise ValueError('Inst must be raw or epochs.')
