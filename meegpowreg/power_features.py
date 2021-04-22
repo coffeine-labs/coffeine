@@ -74,11 +74,12 @@ def compute_features(
     duration : float
         The length of the epochs. If nothing is provided, defaults to 60.
     shift : float
-        The duration to separate events by. If nothing is provided,
-        defaults to 10.
+        The duration to separate events by (sliding shift of the epochs).
+        If nothing is provided, defaults to 10.
     n_fft : int
         The length of FFT used for computing power spectral density (PSD)
-        using Welch's method. If nothing is provided, defaults to 512.
+        using Welch's method and the cospectral covariance.
+        If nothing is provided, defaults to 512.
     n_overlap : int
         The number of points of overlap between segments for PSD computation
         and for the estimation of cospectral covariance matrix.
@@ -88,13 +89,15 @@ def compute_features(
         covariance matrix. If nothing is provided, defaults to 63.0.
     fmin : int
         The minimal frequency to be returned for the estimation of cospectral
-        covariance matrix. If nothing is provided, defaults to 0.
+        covariance matrix and for PSD computation.
+        If nothing is provided, defaults to 0.
     fmax : int
         The maximal frequency to be returned for the estimation of cospectral
-        covariance matrix. If nothing is provided, defaults to 30.
+        covariance matrix and for PSD computation.
+        If nothing is provided, defaults to 30.
     fbands : dict
-        The frequency band with which inst is filtered. If nothing is provided,
-        defaults to {'alpha': (8.0, 12.0)}.
+        The frequency bands with which inst is filtered.
+        If nothing is provided, defaults to {'alpha': (8.0, 12.0)}.
     clean_func : lambda function
         If nothing is provided, defaults to lambda x: x.
     n_jobs : int
@@ -120,7 +123,7 @@ def compute_features(
         covs = _compute_covs_raw(inst, clean_events, fbands, duration)
 
     elif isinstance(inst, BaseEpochs):
-        epochs_clean = inst
+        epochs_clean = clean_func(inst)
         covs = _compute_covs_epochs(epochs_clean, fbands)
     else:
         raise ValueError('Inst must be raw or epochs.')
