@@ -21,75 +21,93 @@ from sklearn.dummy import DummyRegressor
 from sklearn.linear_model import RidgeCV
 
 
-def make_pipelines(
-        frequency_bands=('low', 'delta', 'theta', 'alpha', 'beta'),
-        scale='auto',
-        n_components='full',
-        reg=1.e-05,
-        pipeline='riemann',
-        shrink=1,
-        rank='full',  # for RiemannWass
-        method='upper',  # for NaiveVec: 'upper' 'upperlog' 'logdiag+upper'
-        expand_feautures=None,
-        # if expand=True, learns the interaction effect w/ last binary column,
-        expander_column=-1,
-        preprocessor=None,
-        estimator=None,
-        ridge_alphas=np.logspace(-3, 5, 100)):
+def make_pipelines(frequency_bands=('low', 'delta', 'theta', 'alpha', 'beta'),
+                   pipeline='riemann', projection_params=None,
+                   vectorization_params=None, expand_feautures=None,
+                   expander_column=None, preprocessor=None, estimator=None):
     
-    estimator_ = None
-    preprocessor_ = None
+    # put defaults here for projection and vectorization step
+    projection_params_defaults = {
+        'riemann': dict(scale=1,
+                        n_compo='full',
+                        reg=1.e-05),
+        'lw_riemann': dict(shrink=1),
+        'diag': dict(),
+        'log_diag': dict(),
+        'random': dict(n_compo='full'),
+        'naive': dict(),
+        'spoc': dict(n_compo='full',
+                     scale='auto',
+                     reg=1.e-05,
+                     shrink=1),
+        'riemann_wasserstein': dict()
+    }
 
-    if estimator is None:
-        estimator_ = RidgeCV(alphas=ridge_alphas)
+    vectorization_params_defaults = {
+        'riemann': dict(metric='riemann'),
+        'lw_riemann': dict(metric='riemann'),
+        'diag': dict(),
+        'log_diag': dict(),
+        'random': dict(),
+        'naive': dict(method='upper'),
+        'spoc': dict(),
+        'riemann_wasserstein': dict(rank='full')
+    }
+
+    # update defaults
+    projection_params_ = projection_params_defaults[pipeline]
+    if projection_params is not None:
+        projection_params_.update(**projection_params)
+        
+    vectorization_params_ = vectorization_params_defaults[pipeline]
+    if vectorization_params is not None:
+        vectorization_params_.update(**vectorization_params)
+
+    expander = None
+    if expand_feautures is not None:
+        expander = make_column_transformer(
+            *[(ExpandFeatures(expand='categorical_interaction'),
+               [band, expander_column])
+              for band in frequency_bands],
+            ('drop', expander_column))
+
+    preprocessor_ = preprocessor
     if preprocessor_ is None:
         preprocessor_ = StandardScaler()
 
-    expander = None   
-    if expand_feautures is not None:
-        expander = make_column_transformer(
-            *[(ExpandFeatures(expand=True), [band, expander_column])
-              for band in frequency_bands],
-            ('drop', expander_column))
+    estimator_ = estimator
+    if estimator_ is None:
+        estimator_ = RidgeCV(alphas=np.logspace(-3, 5, 100))
+
  
-    def _get_projector_vectorizer(steps):
-        steps_ = [k(**v) for k, v in steps]
-        return [(make_pipeline(*steps_), band) for band in frequency_bands]
+    def _get_projector_vectorizer(projection, vectorization):
+        return [(make_pipeline(*
+                               [projection(**projection_params_),
+                                vectorization(**vectorization_params_)]),
+                 band) for band in frequency_bands]
     
-    steps = list()
+    # setup pipelines (projection + vectorization step)
+    steps = tuple()
     if pipeline == 'riemann':
-        steps = [
-            (ProjCommonSpace, dict(scale=scale,
-                                   n_compo=n_components,
-                                   reg=reg)),
-            (Riemann, dict(metric='riemann'))]
+        steps = (ProjCommonSpace, Riemann)
     elif pipeline == 'lw_riemann':
-        steps = [(ProjLWSpace, dict(shrink=shrink)),
-                 (Riemann, dict(metric='riemann'))]
+        steps = (ProjLWSpace, Riemann)
     elif pipeline == 'diag':
-        steps = [(ProjIdentitySpace, dict()),
-                 (Diag, dict())]
+        steps = (ProjIdentitySpace, Diag)
     elif pipeline == 'logdiag':
-        steps = [(ProjIdentitySpace, dict()),
-                 (LogDiag, dict())]
+        steps = (ProjIdentitySpace, LogDiag)
     elif pipeline == 'random':
-        steps = [(ProjRandomSpace, dict(n_compo=n_components)),
-                 (LogDiag, dict())]
+        steps = (ProjRandomSpace, LogDiag)
     elif pipeline == 'naive':
-        steps = [(ProjIdentitySpace, dict()),
-                 (NaiveVec, dict(method=method))]
+        steps = (ProjIdentitySpace, NaiveVec)
     elif pipeline == 'spoc':
-        steps = [(ProjSPoCSpace, dict(n_compo=n_components, scale=scale,
-                                      reg=reg,
-                                      shrink=shrink)),
-                 (LogDiag, dict())]
+        steps = (ProjSPoCSpace, LogDiag)
     elif pipeline == 'riemann_wasserstein':
-        steps = [(ProjIdentitySpace, dict()),
-                 (RiemannSnp, dict(rank=rank))]
+        steps = (ProjIdentitySpace, RiemannSnp)
 
     pipeline_steps = [
         make_column_transformer(
-            *_get_projector_vectorizer(steps),
+            *_get_projector_vectorizer(*steps),
             remainder='passthrough'),
         preprocessor,
         estimator]
