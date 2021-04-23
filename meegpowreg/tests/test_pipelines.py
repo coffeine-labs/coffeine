@@ -27,7 +27,7 @@ def toy_data():
 
 def test_pipelines(toy_data):
     model = make_pipelines(
-        frequency_bands=frequency_bands.keys(),
+        names=frequency_bands.keys(),
         expand_feautures=True,
         expander_column="drug")
     X_df, y = toy_data

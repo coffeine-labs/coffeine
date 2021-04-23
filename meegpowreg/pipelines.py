@@ -21,8 +21,7 @@ from sklearn.dummy import DummyRegressor
 from sklearn.linear_model import RidgeCV
 
 
-def make_pipelines(frequency_bands=('low', 'delta', 'theta', 'alpha', 'beta'),
-                   pipeline='riemann', projection_params=None,
+def make_pipelines(names, pipeline='riemann', projection_params=None,
                    vectorization_params=None, expand_feautures=None,
                    expander_column=None, preprocessor=None, estimator=None):
     # XXX do proper doc string
@@ -64,8 +63,8 @@ def make_pipelines(frequency_bands=('low', 'delta', 'theta', 'alpha', 'beta'),
     if expand_feautures is not None:
         expander = make_column_transformer(
             *[(ExpandFeatures(expand='categorical_interaction'),
-               [band, expander_column])
-              for band in frequency_bands],
+               [name, expander_column])
+              for name in names],
             ('drop', expander_column))
 
     preprocessor_ = preprocessor
@@ -81,7 +80,7 @@ def make_pipelines(frequency_bands=('low', 'delta', 'theta', 'alpha', 'beta'),
         return [(make_pipeline(*
                                [projection(**projection_params_),
                                 vectorization(**vectorization_params_)]),
-                 band) for band in frequency_bands]
+                 name) for name in names]
     
     # setup pipelines (projection + vectorization step)
     steps = tuple()
