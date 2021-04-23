@@ -59,10 +59,10 @@ def make_pipelines(names, pipeline='riemann', projection_params=None,
         vectorization_params_.update(**vectorization_params)
 
     # XXX not yet done here
-    expander = None
-    if expand_feautures is not None:
-        expander = make_column_transformer(
-            *[(ExpandFeatures(expand='categorical_interaction'),
+    expander_ = None
+    if expand_feautures is True:
+        expander_ = make_column_transformer(
+            *[(ExpandFeatures(expand=True),
                [name, expander_column])
               for name in names],
             ('drop', expander_column))
@@ -108,8 +108,8 @@ def make_pipelines(names, pipeline='riemann', projection_params=None,
         preprocessor,
         estimator]
 
-    if expander is not None:
-        pipeline_steps.insert(1, expander)
+    if expander_ is not None:
+        pipeline_steps.insert(1, expander_)
     filter_bank = make_pipeline(*pipeline_steps)
 
     return filter_bank
