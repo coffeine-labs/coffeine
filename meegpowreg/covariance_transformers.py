@@ -15,11 +15,8 @@ class Riemann(BaseEstimator, TransformerMixin):
 
     def transform(self, X):
         X = np.array(list(np.squeeze(X)))
-        n_sub, p, _ = X.shape
-        Xout = np.empty((n_sub, p*(p+1)//2))
         Xout = self.ts.transform(X)
-        return pd.DataFrame({'cov': list(Xout.reshape(n_sub, -1))})
-        # (sub, c*(c+1)/2)
+        return pd.DataFrame(Xout)  # (sub, c*(c+1)/2)
 
 
 class Diag(BaseEstimator, TransformerMixin):
@@ -35,7 +32,7 @@ class Diag(BaseEstimator, TransformerMixin):
         Xout = np.empty((n_sub, p))
         for sub in range(n_sub):
             Xout[sub] = np.diag(X[sub])
-        return pd.DataFrame({'cov': list(Xout.reshape(n_sub, -1))})  # (sub,p)
+        return pd.DataFrame(Xout)  # (sub,p)
 
 
 class LogDiag(BaseEstimator, TransformerMixin):
@@ -51,24 +48,28 @@ class LogDiag(BaseEstimator, TransformerMixin):
         Xout = np.empty((n_sub, p))
         for sub in range(n_sub):
             Xout[sub] = np.log10(np.diag(X[sub]))
-        return pd.DataFrame({'cov': list(Xout.reshape(n_sub, -1))})  # (sub,p)
+        return pd.DataFrame(Xout)  # (sub,p)
 
 
 class ExpandFeatures(BaseEstimator, TransformerMixin):
-    def __init__(self, expand=False):
-        self.expand = expand
+    def __init__(self, estimator, expander_column):
+        self.expander_column = expander_column
+        self.estimator = estimator
 
     def fit(self, X, y=None):
+        if not isinstance(X, pd.DataFrame):
+            raise ValueError("X must be a DataFrame")
+        self.estimator.fit(X.drop(self.expander_column, axis=1), y)
         return self
 
     def transform(self, X):
-        res = np.array(list(np.squeeze(X[:, :-1])))
-        if self.expand is True:
-            indicator = np.array(X[:, -1])[:, None]
-            X = np.array(list(np.squeeze(X[:, :-1])))
-            indicatorxX = indicator @ indicator.T @ X
-            res = np.concatenate((X, indicator, indicatorxX), axis=1)
-        return res
+        if not isinstance(X, pd.DataFrame):
+            raise ValueError("X must be a DataFrame")
+        indicator = X[self.expander_column].values[:, None]
+        Xt = self.estimator.transform(X.drop(self.expander_column, axis=1))
+        Xt = np.concatenate((Xt, indicator * Xt, indicator), axis=1)
+        # (n, n_features + 1)
+        return Xt  
 
 
 class NaiveVec(BaseEstimator, TransformerMixin):
@@ -87,8 +88,7 @@ class NaiveVec(BaseEstimator, TransformerMixin):
         for sub in range(n_sub):
             if self.method == 'upper':
                 Xout[sub] = X[sub][np.triu_indices(p)]
-        return pd.DataFrame({'cov': list(Xout.reshape(n_sub, -1))})
-        # (sub,p*(p+1)/2)
+        return pd.DataFrame(Xout)  # (sub, p*(p+1)/2)
 
 
 class RiemannSnp(BaseEstimator, TransformerMixin):
@@ -107,8 +107,7 @@ class RiemannSnp(BaseEstimator, TransformerMixin):
         q = p * self.rank
         Xout = np.empty((n_sub, q))
         Xout = self.ts.transform(X)
-        return pd.DataFrame({'cov': list(Xout.reshape(n_sub, -1))})
-        # (sub, c*(c+1)/2)
+        return pd.DataFrame(Xout)  # (sub, c*(c+1)/2)
 
 
 class Snp(TransformerMixin):

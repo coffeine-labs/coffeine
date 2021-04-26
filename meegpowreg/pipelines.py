@@ -59,14 +59,6 @@ def make_pipelines(names, pipeline='riemann', projection_params=None,
         vectorization_params_.update(**vectorization_params)
 
     # XXX not yet done here
-    expander_ = None
-    if expand_feautures is True:
-        expander_ = make_column_transformer(
-            *[(ExpandFeatures(expand=True),
-               [name, expander_column])
-              for name in names],
-            ('drop', expander_column))
-
     preprocessor_ = preprocessor
     if preprocessor_ is None:
         preprocessor_ = StandardScaler()
@@ -102,14 +94,16 @@ def make_pipelines(names, pipeline='riemann', projection_params=None,
         steps = (ProjIdentitySpace, RiemannSnp)
 
     pipeline_steps = [
-        make_column_transformer(
-            *_get_projector_vectorizer(*steps),
-            remainder='passthrough'),
+        ExpandFeatures(
+            make_column_transformer(
+                *_get_projector_vectorizer(*steps),
+                remainder='passthrough'),
+            expander_column),
         preprocessor,
         estimator]
 
-    if expander_ is not None:
-        pipeline_steps.insert(1, expander_)
+    # if expander_ is not None:
+    #     pipeline_steps.insert(1, expander_)
     filter_bank = make_pipeline(*pipeline_steps)
 
     return filter_bank

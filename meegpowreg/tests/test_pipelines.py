@@ -28,7 +28,6 @@ def toy_data():
 def test_pipelines(toy_data):
     model = make_pipelines(
         names=frequency_bands.keys(),
-        expand_feautures=True,
         expander_column="drug")
     X_df, y = toy_data
     model.fit(X_df, y)
