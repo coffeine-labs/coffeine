@@ -75,9 +75,8 @@ data_dir = os.path.join(data_path, 'MEG', 'sample')
 raw_fname = os.path.join(data_dir, 'sample_audvis_raw.fif')
 
 raw = mne.io.read_raw_fif(raw_fname, verbose=False)
-raw = raw.copy().crop(0, 200).pick(
-list(range(2)) + list(range(330, 333))  # take some MEG and EEG
-)
+# pick some MEG and EEG channels after cropping
+raw = raw.copy().crop(0, 200).pick([0, 1, 330, 331, 332])
 
 fbands = {'alpha': (8.0, 15.0), 'beta': (15.0, 30.0)}
 
@@ -110,7 +109,7 @@ n_freq_bands = len(freq_bands)
 n_subjects = 10
 n_channels = 4
 
-# Toy data
+# Make toy data
 X_cov = np.random.randn(n_subjects, n_freq_bands, n_channels, n_channels)
 for sub in range(n_subjects):
     for fb in range(n_freq_bands):

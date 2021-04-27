@@ -27,7 +27,7 @@ def toy_data():
 def test_pipelines(toy_data):
     model = make_filter_bank_model(
         names=frequency_bands.keys(),
-        pipeline='riemann',
+        method='riemann',
         categorical_interaction="drug")
     X_df, y = toy_data
     model.fit(X_df, y)
