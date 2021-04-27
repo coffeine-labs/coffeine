@@ -4,17 +4,29 @@ from pyriemann.tangentspace import TangentSpace
 from sklearn.base import BaseEstimator, TransformerMixin
 
 
+def _check_data(X):
+    # make proper 3d array of covariances
+    out = None
+    if X.ndim == 3:
+        out = X
+    if X.values.dtype == 'object':
+        # first remove unnecessary dimensions,
+        # then stack to 3d data
+        out = np.stack(np.squeeze(X.values))
+    return out
+
+
 class Riemann(BaseEstimator, TransformerMixin):
     def __init__(self, metric='wasserstein'):
         self.metric = metric
 
     def fit(self, X, y=None):
-        X = np.array(list(np.squeeze(X)))
+        X = _check_data(X)
         self.ts = TangentSpace(metric=self.metric).fit(X)
         return self
 
     def transform(self, X):
-        X = np.array(list(np.squeeze(X)))
+        X = _check_data(X)
         Xout = self.ts.transform(X)
         return pd.DataFrame(Xout)  # (sub, c*(c+1)/2)
 
@@ -27,7 +39,7 @@ class Diag(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X):
-        X = np.array(list(np.squeeze(X)))
+        X = _check_data(X)
         n_sub, p, _ = X.shape
         Xout = np.empty((n_sub, p))
         for sub in range(n_sub):
@@ -43,7 +55,7 @@ class LogDiag(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X):
-        X = np.array(list(np.squeeze(X)))
+        X = _check_data(X)
         n_sub, p, _ = X.shape
         Xout = np.empty((n_sub, p))
         for sub in range(n_sub):
@@ -81,7 +93,7 @@ class NaiveVec(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X):
-        X = np.array(list(np.squeeze(X)))
+        X = _check_data(X)
         n_sub, p, _ = X.shape
         q = int(p * (p+1) / 2)
         Xout = np.empty((n_sub, q))
@@ -96,13 +108,13 @@ class RiemannSnp(BaseEstimator, TransformerMixin):
         self.rank = rank
 
     def fit(self, X, y=None):
-        X = np.array(list(np.squeeze(X)))
+        X = _check_data(X)
         self.rank = len(X[0]) if self.rank == 'full' else self.rank
         self.ts = Snp(rank=self.rank).fit(X)
         return self
 
     def transform(self, X):
-        X = np.array(list(np.squeeze(X)))
+        X = _check_data(X)
         n_sub, p, _ = X.shape
         q = p * self.rank
         Xout = np.empty((n_sub, q))
