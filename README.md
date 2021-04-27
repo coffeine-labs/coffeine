@@ -60,7 +60,7 @@ Compute power features from raw M/EEG data:
 - The cross-frequency covariance matrices
 - The cross-frequency correlation matrices
 
-The matrices are of shape (n_frequency_bands, n_channelsannels, n_channelsannels)
+The matrices are of shape (n_frequency_bands, n_channels, n_channels)
 
 Use case example:
 
