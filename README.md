@@ -60,7 +60,7 @@ Compute power features from raw M/EEG data:
 - The cross-frequency covariance matrices
 - The cross-frequency correlation matrices
 
-The matrices are of shape (n_frequency_bands, n_channels, n_channels)
+The matrices are of shape (n_frequency_bands, n_channelsannels, n_channelsannels)
 
 Use case example:
 
@@ -103,28 +103,27 @@ Use case example:
 ```python
 import numpy as np
 import pandas as pd
-from meegpowreg import make_filter_bank_models
+from meegpowreg import make_filter_bank_model
 
-fbands = {'alpha': (8.0, 15.0), 'beta': (15.0, 30.0)}
-n_fb = len(fbands)
-n_sub = 10
-n_ch = 4
+freq_bands = {'alpha': (8.0, 15.0), 'beta': (15.0, 30.0)}
+n_freq_bands = len(freq_bands)
+n_subjects = 10
+n_channels = 4
 
 # Toy data
-Xcov = np.random.randn(n_sub, n_fb, n_ch, n_ch)
-for sub in range(n_sub):
-    for fb in range(n_fb):
-        Xcov[sub, fb] = Xcov[sub, fb] @ Xcov[sub, fb].T
-Xcov = list(Xcov.transpose((1, 0, 2, 3)))
-X_df = pd.DataFrame(dict(zip(list(fbands.keys()), map(list, Xcov))))
-X_df['drug'] = np.random.randint(2, size=n_sub)
+X_cov = np.random.randn(n_subjects, n_freq_bands, n_channels, n_channels)
+for sub in range(n_subjects):
+    for fb in range(n_freq_bands):
+        X_cov[sub, fb] = X_cov[sub, fb] @ X_cov[sub, fb].T
+X_df = pd.DataFrame(
+  {band: list(X_cov[:, ii]) for ii, band in enumerate(freq_bands)})
+X_df['drug'] = np.random.randint(2, size=n_subjects)
 y = np.random.randn(len(X_df))
 
 # Models
-pipelines = make_filter_bank_models(
-  names=fbands.keys())
-model = pipelines['riemann']
-model.fit(X_df, y)
+fb_model = make_filter_bank_model(names=freq_bands.keys(), 
+                                  pipeline='riemann')
+fb_model.fit(X_df, y)
 ```
 
 ## Cite

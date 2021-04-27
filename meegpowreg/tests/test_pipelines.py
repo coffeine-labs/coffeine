@@ -11,15 +11,13 @@ n_frequency_bands = len(frequency_bands)
 
 @pytest.fixture
 def toy_data():
-    Xcov = np.random.randn(
+    X_cov = np.random.randn(
         n_subjects, n_frequency_bands, n_channels, n_channels)
     for sub in range(n_subjects):
         for fb in range(n_frequency_bands):
-            Xcov[sub, fb] = Xcov[sub, fb] @ Xcov[sub, fb].T
-    Xcov = list(Xcov.transpose((1, 0, 2, 3)))
-    df = pd.DataFrame(
-        dict(zip(list(frequency_bands.keys()),
-                 map(list, Xcov))))
+            X_cov[sub, fb] = X_cov[sub, fb] @ X_cov[sub, fb].T
+    df = pd.DataFrame({band: list(X_cov[:, ii])
+                       for ii, band in enumerate(frequency_bands)})
     df['drug'] = np.random.randint(2, size=n_subjects)
     rng = np.random.RandomState(2021)
     y = rng.randn(len(df))
