@@ -64,7 +64,7 @@ def make_filter_bank_model(names, method='riemann', projection_params=None,
         The parameters for the vectorization step.
     categorical_interaction : str
         The column in the input data frame containing a binary descriptor
-        used to fit 2-way interaction effects. 
+        used to fit 2-way interaction effects.
     scaling : scikit-learn Transformer object | None
         Method for re-rescaling the features. Defaults to None. If None,
         StandardScaler is used.
