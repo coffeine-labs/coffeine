@@ -8,6 +8,7 @@ n_subjects = 10
 n_channels = 4
 n_frequency_bands = len(frequency_bands)
 
+
 @pytest.fixture
 def toy_data():
     Xcov = np.random.randn(
@@ -28,6 +29,7 @@ def toy_data():
 def test_pipelines(toy_data):
     model = make_pipelines(
         names=frequency_bands.keys(),
+        pipeline='riemann',
         expander_column="drug")
     X_df, y = toy_data
     model.fit(X_df, y)

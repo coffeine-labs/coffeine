@@ -69,7 +69,7 @@ class ExpandFeatures(BaseEstimator, TransformerMixin):
         Xt = self.estimator.transform(X.drop(self.expander_column, axis=1))
         Xt = np.concatenate((Xt, indicator * Xt, indicator), axis=1)
         # (n, n_features + 1)
-        return Xt  
+        return Xt
 
 
 class NaiveVec(BaseEstimator, TransformerMixin):
