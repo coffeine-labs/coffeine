@@ -84,7 +84,7 @@ fbands = {'alpha': (8.0, 15.0), 'beta': (15.0, 30.0)}
 features, _ = compute_features(raw, fbands=fbands)
 ```
 
-### make_pipelines
+### make_filter_bank_models
 
 The following models are implemented:
 
@@ -103,7 +103,7 @@ Use case example:
 ```python
 import numpy as np
 import pandas as pd
-from meegpowreg import make_pipelines
+from meegpowreg import make_filter_bank_models
 
 fbands = {'alpha': (8.0, 15.0), 'beta': (15.0, 30.0)}
 n_fb = len(fbands)
@@ -121,7 +121,8 @@ X_df['drug'] = np.random.randint(2, size=n_sub)
 y = np.random.randn(len(X_df))
 
 # Models
-pipelines = make_pipelines(fb_cols=fbands.keys(), expand=True)
+pipelines = make_filter_bank_models(
+  names=fbands.keys())
 model = pipelines['riemann']
 model.fit(X_df, y)
 ```

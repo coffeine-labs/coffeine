@@ -23,7 +23,7 @@ __version__ = '0.1.dev'
 
 from .covariance_transformers import Riemann, Diag, LogDiag, ExpandFeatures, NaiveVec, RiemannSnp  # noqa
 
-from .pipelines import make_pipelines  # noqa
+from .pipelines import make_filter_bank_model  # noqa
 
 from .power_features import compute_features  # noqa
 

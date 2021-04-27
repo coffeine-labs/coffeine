@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import pytest
-from meegpowreg.pipelines import make_pipelines
+from meegpowreg.pipelines import make_filter_bank_model
 
 frequency_bands = {'alpha': (8.0, 15.0), 'beta': (15.0, 30.0)}
 n_subjects = 10
@@ -27,9 +27,9 @@ def toy_data():
 
 
 def test_pipelines(toy_data):
-    model = make_pipelines(
+    model = make_filter_bank_model(
         names=frequency_bands.keys(),
         pipeline='riemann',
-        expander_column="drug")
+        categorical_interaction="drug")
     X_df, y = toy_data
     model.fit(X_df, y)

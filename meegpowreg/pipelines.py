@@ -20,9 +20,10 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import RidgeCV
 
 
-def make_pipelines(names, pipeline='riemann', projection_params=None,
-                   vectorization_params=None, expand_feautures=None,
-                   expander_column=None, preprocessor=None, estimator=None):
+def make_filter_bank_model(names, pipeline='riemann', projection_params=None,
+                           vectorization_params=None,
+                           categorical_interaction=None, preprocessor=None,
+                           estimator=None):
     # XXX do proper doc string
 
     # put defaults here for projection and vectorization step
@@ -56,9 +57,6 @@ def make_pipelines(names, pipeline='riemann', projection_params=None,
     vectorization_params_ = vectorization_defaults[pipeline]
     if vectorization_params is not None:
         vectorization_params_.update(**vectorization_params)
-
-    # XXX not yet done here
-    expander_ = None
 
     preprocessor_ = preprocessor
     if preprocessor_ is None:
@@ -98,10 +96,11 @@ def make_pipelines(names, pipeline='riemann', projection_params=None,
             *_get_projector_vectorizer(*steps),
             remainder='passthrough'),
         preprocessor,
-        estimator]
+        estimator
+    ]
+    if categorical_interaction is not None:
+        pipeline_steps[0] = ExpandFeatures(
+            pipeline_steps[0], expander_column=categorical_interaction)
 
-    if expander_ is not None:
-        pipeline_steps[0] = ExpandFeatures(pipeline_steps[0])
     filter_bank = make_pipeline(*pipeline_steps)
-
     return filter_bank
