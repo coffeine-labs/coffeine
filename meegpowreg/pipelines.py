@@ -58,7 +58,7 @@ def make_filter_bank_model(names, method='riemann', projection_params=None,
         covariances.
     method : str
         The method used for extracting features from covariances. Defaults
-        to `riemann'.
+        to ``'riemann'``.
     projection_params : dict
         The parameters for the projection step.
     vectorization_params : dict
