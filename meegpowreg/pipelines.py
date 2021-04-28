@@ -153,8 +153,9 @@ def make_filter_bank_regressor(names, method='riemann',
 
     Prepare filter bank models as used in [1]_. These models take as input
     sensor-space covariance matrices computed from M/EEG signals in different
-    frequency bands. Then transformations are applied that can improve the
-    applicability of linear regression techniques by removing field spread.
+    frequency bands. Then transformations are applied to improve the
+    applicability of linear regression techniques by reducing the impact of
+    field spread.
 
     In terms of implementation, this involves 1) projection
     (e.g. spatial filters) and 2) vectorization (e.g. taking the log on the
@@ -163,7 +164,7 @@ def make_filter_bank_regressor(names, method='riemann',
     .. note::
         The resulting model expects as inputs data frames in which different
         covarances (e.g. for different frequencies) are stored inside columns
-        indexed by ``names''.
+        indexed by ``names``.
 
         Other columns will be passed through by the underlying column
         transformers.
@@ -182,7 +183,7 @@ def make_filter_bank_regressor(names, method='riemann',
         covariances.
     method : str
         The method used for extracting features from covariances. Defaults
-        to `riemann'.
+        to ``'riemann'``.
     projection_params : dict
         The parameters for the projection step.
     vectorization_params : dict
@@ -194,9 +195,8 @@ def make_filter_bank_regressor(names, method='riemann',
         Method for re-rescaling the features. Defaults to None. If None,
         StandardScaler is used.
     estimator : scikit-learn Estimator object.
-        The estimator object. Defaults to None. If None, RidgeCV is used with
-        generalized cross validation for the regularization parameter alpha.
-        A logarithmic space between -3 and 5 is visited (100 values).
+        The estimator object. Defaults to None. If None, LogisticRegression
+        is performed with default values.
 
     References
     ----------
@@ -239,8 +239,9 @@ def make_filter_bank_classifier(names, method='riemann',
 
     Prepare filter bank models as used in [1]_. These models take as input
     sensor-space covariance matrices computed from M/EEG signals in different
-    frequency bands. Then transformations are applied that can improve the
-    applicability of linear regression techniques by removing field spread.
+    frequency bands. Then transformations are applied to improve the
+    applicability of linear regression techniques by reducing the impact of
+    field spread.
 
     In terms of implementation, this involves 1) projection
     (e.g. spatial filters) and 2) vectorization (e.g. taking the log on the
@@ -249,7 +250,7 @@ def make_filter_bank_classifier(names, method='riemann',
     .. note::
         The resulting model expects as inputs data frames in which different
         covarances (e.g. for different frequencies) are stored inside columns
-        indexed by ``names''.
+        indexed by ``names``.
 
         Other columns will be passed through by the underlying column
         transformers.
@@ -268,7 +269,7 @@ def make_filter_bank_classifier(names, method='riemann',
         covariances.
     method : str
         The method used for extracting features from covariances. Defaults
-        to `riemann'.
+        to ``'riemann'``.
     projection_params : dict
         The parameters for the projection step.
     vectorization_params : dict
