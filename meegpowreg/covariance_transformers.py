@@ -17,8 +17,9 @@ def _check_data(X):
 
 
 class Riemann(BaseEstimator, TransformerMixin):
-    def __init__(self, metric='wasserstein'):
+    def __init__(self, metric='wasserstein', return_data_frame=True):
         self.metric = metric
+        self.return_data_frame = return_data_frame
 
     def fit(self, X, y=None):
         X = _check_data(X)
@@ -27,12 +28,15 @@ class Riemann(BaseEstimator, TransformerMixin):
 
     def transform(self, X):
         X = _check_data(X)
-        Xout = self.ts.transform(X)
-        return pd.DataFrame(Xout)  # (sub, c*(c+1)/2)
+        X_out = self.ts.transform(X)
+        if self.return_data_frame:
+            X_out = pd.DataFrame(X_out)
+        return X_out  # (sub, c*(c+1)/2)
 
 
 class Diag(BaseEstimator, TransformerMixin):
-    def __init__(self):
+    def __init__(self, return_data_frame=True):
+        self.return_data_frame = return_data_frame
         return None
 
     def fit(self, X, y=None):
@@ -41,14 +45,17 @@ class Diag(BaseEstimator, TransformerMixin):
     def transform(self, X):
         X = _check_data(X)
         n_sub, p, _ = X.shape
-        Xout = np.empty((n_sub, p))
+        X_out = np.empty((n_sub, p))
         for sub in range(n_sub):
-            Xout[sub] = np.diag(X[sub])
-        return pd.DataFrame(Xout)  # (sub,p)
+            X_out[sub] = np.diag(X[sub])
+        if self.return_data_frame:
+            X_out = pd.DataFrame(X_out)
+        return X_out  # (sub,p)
 
 
 class LogDiag(BaseEstimator, TransformerMixin):
-    def __init__(self):
+    def __init__(self, return_data_frame=True):
+        self.return_data_frame = return_data_frame
         return None
 
     def fit(self, X, y=None):
@@ -57,10 +64,12 @@ class LogDiag(BaseEstimator, TransformerMixin):
     def transform(self, X):
         X = _check_data(X)
         n_sub, p, _ = X.shape
-        Xout = np.empty((n_sub, p))
+        X_out = np.empty((n_sub, p))
         for sub in range(n_sub):
-            Xout[sub] = np.log10(np.diag(X[sub]))
-        return pd.DataFrame(Xout)  # (sub,p)
+            X_out[sub] = np.log10(np.diag(X[sub]))
+        if self.return_data_frame:
+            X_out = pd.DataFrame(X_out)
+        return X_out  # (sub,p)
 
 
 class ExpandFeatures(BaseEstimator, TransformerMixin):
@@ -85,8 +94,9 @@ class ExpandFeatures(BaseEstimator, TransformerMixin):
 
 
 class NaiveVec(BaseEstimator, TransformerMixin):
-    def __init__(self, method):
+    def __init__(self, method, return_data_frame=True):
         self.method = method
+        self.return_data_frame = return_data_frame
         return None
 
     def fit(self, X, y=None):
@@ -96,16 +106,19 @@ class NaiveVec(BaseEstimator, TransformerMixin):
         X = _check_data(X)
         n_sub, p, _ = X.shape
         q = int(p * (p+1) / 2)
-        Xout = np.empty((n_sub, q))
+        X_out = np.empty((n_sub, q))
         for sub in range(n_sub):
             if self.method == 'upper':
-                Xout[sub] = X[sub][np.triu_indices(p)]
-        return pd.DataFrame(Xout)  # (sub, p*(p+1)/2)
+                X_out[sub] = X[sub][np.triu_indices(p)]
+        if self.return_data_frame:
+            X_out = pd.DataFrame(X_out)
+        return X_out  # (sub, p*(p+1)/2)
 
 
 class RiemannSnp(BaseEstimator, TransformerMixin):
-    def __init__(self, rank='full'):
+    def __init__(self, rank='full', return_data_frame=True):
         self.rank = rank
+        self.return_data_frame = return_data_frame
 
     def fit(self, X, y=None):
         X = _check_data(X)
@@ -117,9 +130,11 @@ class RiemannSnp(BaseEstimator, TransformerMixin):
         X = _check_data(X)
         n_sub, p, _ = X.shape
         q = p * self.rank
-        Xout = np.empty((n_sub, q))
-        Xout = self.ts.transform(X)
-        return pd.DataFrame(Xout)  # (sub, c*(c+1)/2)
+        X_out = np.empty((n_sub, q))
+        X_out = self.ts.transform(X)
+        if self.return_data_frame:
+            X_out = pd.DataFrame(X_out)
+        return X_out  # (sub, c*(c+1)/2)
 
 
 class Snp(TransformerMixin):

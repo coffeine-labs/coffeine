@@ -102,7 +102,7 @@ Use case example:
 ```python
 import numpy as np
 import pandas as pd
-from meegpowreg import make_filter_bank_model
+from meegpowreg import make_filter_bank_regressor
 
 freq_bands = {'alpha': (8.0, 15.0), 'beta': (15.0, 30.0)}
 n_freq_bands = len(freq_bands)
@@ -120,8 +120,8 @@ X_df['drug'] = np.random.randint(2, size=n_subjects)
 y = np.random.randn(len(X_df))
 
 # Models
-fb_model = make_filter_bank_model(names=freq_bands.keys(), 
-                                  pipeline='riemann')
+fb_model = make_filter_bank_regressor(names=freq_bands.keys(),
+                                      method='riemann')
 fb_model.fit(X_df, y)
 ```
 

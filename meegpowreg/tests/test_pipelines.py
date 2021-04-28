@@ -1,7 +1,8 @@
 import numpy as np
 import pandas as pd
 import pytest
-from meegpowreg.pipelines import make_filter_bank_model
+from meegpowreg.pipelines import (make_filter_bank_regressor,
+                                  make_filter_bank_classifier)
 
 frequency_bands = {'alpha': (8.0, 15.0), 'beta': (15.0, 30.0)}
 n_subjects = 10
@@ -25,9 +26,16 @@ def toy_data():
 
 
 def test_pipelines(toy_data):
-    model = make_filter_bank_model(
+    regressor = make_filter_bank_regressor(
         names=frequency_bands.keys(),
         method='riemann',
         categorical_interaction="drug")
     X_df, y = toy_data
-    model.fit(X_df, y)
+    regressor.fit(X_df, y)
+
+    regressor = make_filter_bank_classifier(
+        names=frequency_bands.keys(),
+        method='riemann',
+        categorical_interaction="drug")
+    y_bin = np.sign(y - np.mean(y))
+    regressor.fit(X_df, y_bin)
