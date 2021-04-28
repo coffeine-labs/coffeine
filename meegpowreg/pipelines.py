@@ -39,7 +39,7 @@ def make_filter_bank_model(names, method='riemann', projection_params=None,
     .. note::
         The resulting model expects as inputs data frames in which different
         covarances (e.g. for different frequencies) are stored inside columns
-        indexed by ``names''.
+        indexed by ``names``.
 
         Other columns will be passed through by the underlying column
         transformers.
