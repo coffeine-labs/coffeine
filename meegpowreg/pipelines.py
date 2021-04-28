@@ -28,8 +28,9 @@ def make_filter_bank_model(names, method='riemann', projection_params=None,
 
     Compute filter bank models as used in [1]_. These models take as input
     sensor-space covariance matrices computed from M/EEG signals in different
-    frequency bands. Then transformations are applied that can improve the
-    applicability of linear regression techniques by removing field spread.
+    frequency bands. Then transformations are applied to improve the
+    applicability of linear regression techniques by reducing the impact of
+    field spread.
 
     In terms of implementation, this involves 1) projection
     (e.g. spatial filters) and 2) vectorization (e.g. taking the log on the
