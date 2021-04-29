@@ -195,7 +195,7 @@ def make_filter_bank_regressor(names, method='riemann',
         Method for re-rescaling the features. Defaults to None. If None,
         StandardScaler is used.
     estimator : scikit-learn Estimator object.
-        The estimator object. Defaults to None. If None, LogisticRegression
+        The estimator object. Defaults to None. If None, RidgeCV
         is performed with default values.
 
     References
