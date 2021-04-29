@@ -305,7 +305,7 @@ def make_filter_bank_classifier(names, method='riemann',
 
     estimator_ = estimator
     if estimator_ is None:
-        estimator_ = LogisticRegression()
+        estimator_ = LogisticRegression(solver='liblinear')
 
     filter_bank_regressor = make_pipeline(
         filter_bank_transformer,
