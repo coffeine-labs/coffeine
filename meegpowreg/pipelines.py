@@ -104,7 +104,8 @@ def make_filter_bank_transformer(names, method='riemann',
     assert set(projection_defaults) == set(vectorization_defaults)
 
     if method not in projection_defaults:
-        raise ValueError(f"The `method` ({method}) you specified is unknown.")
+        raise ValueError(
+            f"The `method` ('{method}') you specified is unknown.")
 
     # update defaults
     projection_params_ = projection_defaults[method]
