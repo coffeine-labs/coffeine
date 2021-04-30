@@ -27,4 +27,6 @@ from .pipelines import make_pipelines  # noqa
 
 from .power_features import compute_features  # noqa
 
+from .power_features import _compute_covs_epochs # noqa
+
 from .spfiltering import ProjIdentitySpace, ProjCommonSpace, ProjLWSpace, ProjRandomSpace, ProjSPoCSpace  # noqa
