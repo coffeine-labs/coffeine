@@ -58,10 +58,12 @@ def make_filter_bank_transformer(names, method='riemann',
         covariances.
     method : str
         The method used for extracting features from covariances. Defaults
-        to ``'riemann'``.
-    projection_params : dict
+        to ``'riemann'``. Can be ``'riemann'``, ``'lw_riemann'``, ``'diag'``,
+        ``'log_diag'``, ``'random'``, ``'naive'``, ``'spoc'``,
+        ``'riemann_wasserstein'``.
+    projection_params : dict | None
         The parameters for the projection step.
-    vectorization_params : dict
+    vectorization_params : dict | None
         The parameters for the vectorization step.
     categorical_interaction : str
         The column in the input data frame containing a binary descriptor
@@ -76,7 +78,6 @@ def make_filter_bank_transformer(names, method='riemann',
         https://doi.org/10.1016/j.neuroimage.2020.116893
 
     """
-
     # put defaults here for projection and vectorization step
     projection_defaults = {
         'riemann': dict(scale=1, n_compo='full', reg=1.e-05),
@@ -99,6 +100,11 @@ def make_filter_bank_transformer(names, method='riemann',
         'spoc': dict(),
         'riemann_wasserstein': dict(rank='full')
     }
+
+    assert set(projection_defaults) == set(vectorization_defaults)
+
+    if method not in projection_defaults:
+        raise ValueError(f"The `method` ({method}) you specified is unknown.")
 
     # update defaults
     projection_params_ = projection_defaults[method]
@@ -123,7 +129,7 @@ def make_filter_bank_transformer(names, method='riemann',
         steps = (ProjLWSpace, Riemann)
     elif method == 'diag':
         steps = (ProjIdentitySpace, Diag)
-    elif method == 'logdiag':
+    elif method == 'log_diag':
         steps = (ProjIdentitySpace, LogDiag)
     elif method == 'random':
         steps = (ProjRandomSpace, LogDiag)
@@ -183,10 +189,12 @@ def make_filter_bank_regressor(names, method='riemann',
         covariances.
     method : str
         The method used for extracting features from covariances. Defaults
-        to ``'riemann'``.
-    projection_params : dict
+        to ``'riemann'``. Can be ``'riemann'``, ``'lw_riemann'``, ``'diag'``,
+        ``'log_diag'``, ``'random'``, ``'naive'``, ``'spoc'``,
+        ``'riemann_wasserstein'``.
+    projection_params : dict | None
         The parameters for the projection step.
-    vectorization_params : dict
+    vectorization_params : dict | None
         The parameters for the vectorization step.
     categorical_interaction : str
         The column in the input data frame containing a binary descriptor
@@ -269,10 +277,12 @@ def make_filter_bank_classifier(names, method='riemann',
         covariances.
     method : str
         The method used for extracting features from covariances. Defaults
-        to ``'riemann'``.
-    projection_params : dict
+        to ``'riemann'``. Can be ``'riemann'``, ``'lw_riemann'``, ``'diag'``,
+        ``'log_diag'``, ``'random'``, ``'naive'``, ``'spoc'``,
+        ``'riemann_wasserstein'``.
+    projection_params : dict | None
         The parameters for the projection step.
-    vectorization_params : dict
+    vectorization_params : dict | None
         The parameters for the vectorization step.
     categorical_interaction : str
         The column in the input data frame containing a binary descriptor

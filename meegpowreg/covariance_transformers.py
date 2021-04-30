@@ -66,7 +66,8 @@ class LogDiag(BaseEstimator, TransformerMixin):
         n_sub, p, _ = X.shape
         X_out = np.empty((n_sub, p))
         for sub in range(n_sub):
-            X_out[sub] = np.log10(np.diag(X[sub]))
+            X_out[sub] = np.diag(X[sub])
+        np.log(X_out, out=X_out)
         if self.return_data_frame:
             X_out = pd.DataFrame(X_out)
         return X_out  # (sub,p)

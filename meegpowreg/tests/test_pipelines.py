@@ -26,16 +26,35 @@ def toy_data():
 
 
 def test_pipelines(toy_data):
-    regressor = make_filter_bank_regressor(
-        names=frequency_bands.keys(),
-        method='riemann',
-        categorical_interaction="drug")
-    X_df, y = toy_data
-    regressor.fit(X_df, y)
+    methods = (
+        'riemann',
+        'lw_riemann',
+        'diag',
+        'log_diag',
+        'random',
+        'naive',
+        'spoc',
+        'riemann_wasserstein'
+    )
+    for method in methods:
+        regressor = make_filter_bank_regressor(
+            names=frequency_bands.keys(),
+            method=method,
+            projection_params=(dict(n_compo=2) if method in
+                               ('random', 'riemann', 'spoc') else None),
+            categorical_interaction="drug")
+        X_df, y = toy_data
+        regressor.fit(X_df, y)
+
+    with pytest.raises(ValueError, match=r".* specified .*"):
+        regressor = make_filter_bank_regressor(
+            names=frequency_bands.keys(),
+            method='deep neural ANOVA')
 
     regressor = make_filter_bank_classifier(
         names=frequency_bands.keys(),
         method='riemann',
+        vectorization_params=dict(metric='wasserstein'),
         categorical_interaction="drug")
     y_bin = np.sign(y - np.mean(y))
     regressor.fit(X_df, y_bin)
