@@ -4,111 +4,137 @@ from pyriemann.tangentspace import TangentSpace
 from sklearn.base import BaseEstimator, TransformerMixin
 
 
+def _check_data(X):
+    # make proper 3d array of covariances
+    out = None
+    if X.ndim == 3:
+        out = X
+    if X.values.dtype == 'object':
+        # first remove unnecessary dimensions,
+        # then stack to 3d data
+        out = np.stack(np.squeeze(X.values))
+    return out
+
+
 class Riemann(BaseEstimator, TransformerMixin):
-    def __init__(self, metric='wasserstein'):
+    def __init__(self, metric='wasserstein', return_data_frame=True):
         self.metric = metric
+        self.return_data_frame = return_data_frame
 
     def fit(self, X, y=None):
-        X = np.array(list(np.squeeze(X)))
+        X = _check_data(X)
         self.ts = TangentSpace(metric=self.metric).fit(X)
         return self
 
     def transform(self, X):
-        X = np.array(list(np.squeeze(X)))
-        n_sub, p, _ = X.shape
-        Xout = np.empty((n_sub, p*(p+1)//2))
-        Xout = self.ts.transform(X)
-        return pd.DataFrame({'cov': list(Xout.reshape(n_sub, -1))})
-        # (sub, c*(c+1)/2)
+        X = _check_data(X)
+        X_out = self.ts.transform(X)
+        if self.return_data_frame:
+            X_out = pd.DataFrame(X_out)
+        return X_out  # (sub, c*(c+1)/2)
 
 
 class Diag(BaseEstimator, TransformerMixin):
-    def __init__(self):
+    def __init__(self, return_data_frame=True):
+        self.return_data_frame = return_data_frame
         return None
 
     def fit(self, X, y=None):
         return self
 
     def transform(self, X):
-        X = np.array(list(np.squeeze(X)))
+        X = _check_data(X)
         n_sub, p, _ = X.shape
-        Xout = np.empty((n_sub, p))
+        X_out = np.empty((n_sub, p))
         for sub in range(n_sub):
-            Xout[sub] = np.diag(X[sub])
-        return pd.DataFrame({'cov': list(Xout.reshape(n_sub, -1))})  # (sub,p)
+            X_out[sub] = np.diag(X[sub])
+        if self.return_data_frame:
+            X_out = pd.DataFrame(X_out)
+        return X_out  # (sub,p)
 
 
 class LogDiag(BaseEstimator, TransformerMixin):
-    def __init__(self):
+    def __init__(self, return_data_frame=True):
+        self.return_data_frame = return_data_frame
         return None
 
     def fit(self, X, y=None):
         return self
 
     def transform(self, X):
-        X = np.array(list(np.squeeze(X)))
+        X = _check_data(X)
         n_sub, p, _ = X.shape
-        Xout = np.empty((n_sub, p))
+        X_out = np.empty((n_sub, p))
         for sub in range(n_sub):
-            Xout[sub] = np.log10(np.diag(X[sub]))
-        return pd.DataFrame({'cov': list(Xout.reshape(n_sub, -1))})  # (sub,p)
+            X_out[sub] = np.log10(np.diag(X[sub]))
+        if self.return_data_frame:
+            X_out = pd.DataFrame(X_out)
+        return X_out  # (sub,p)
 
 
 class ExpandFeatures(BaseEstimator, TransformerMixin):
-    def __init__(self, expand=False):
-        self.expand = expand
+    def __init__(self, estimator, expander_column):
+        self.expander_column = expander_column
+        self.estimator = estimator
 
     def fit(self, X, y=None):
+        if not isinstance(X, pd.DataFrame):
+            raise ValueError("X must be a DataFrame")
+        self.estimator.fit(X.drop(self.expander_column, axis=1), y)
         return self
 
     def transform(self, X):
-        res = np.array(list(np.squeeze(X[:, :-1])))
-        if self.expand is True:
-            indicator = np.array(X[:, -1])[:, None]
-            X = np.array(list(np.squeeze(X[:, :-1])))
-            indicatorxX = indicator @ indicator.T @ X
-            res = np.concatenate((X, indicator, indicatorxX), axis=1)
-        return res
+        if not isinstance(X, pd.DataFrame):
+            raise ValueError("X must be a DataFrame")
+        indicator = X[self.expander_column].values[:, None]
+        Xt = self.estimator.transform(X.drop(self.expander_column, axis=1))
+        Xt = np.concatenate((Xt, indicator * Xt, indicator), axis=1)
+        # (n, n_features + 1)
+        return Xt
 
 
 class NaiveVec(BaseEstimator, TransformerMixin):
-    def __init__(self, method):
+    def __init__(self, method, return_data_frame=True):
         self.method = method
+        self.return_data_frame = return_data_frame
         return None
 
     def fit(self, X, y=None):
         return self
 
     def transform(self, X):
-        X = np.array(list(np.squeeze(X)))
+        X = _check_data(X)
         n_sub, p, _ = X.shape
         q = int(p * (p+1) / 2)
-        Xout = np.empty((n_sub, q))
+        X_out = np.empty((n_sub, q))
         for sub in range(n_sub):
             if self.method == 'upper':
-                Xout[sub] = X[sub][np.triu_indices(p)]
-        return pd.DataFrame({'cov': list(Xout.reshape(n_sub, -1))})
-        # (sub,p*(p+1)/2)
+                X_out[sub] = X[sub][np.triu_indices(p)]
+        if self.return_data_frame:
+            X_out = pd.DataFrame(X_out)
+        return X_out  # (sub, p*(p+1)/2)
 
 
 class RiemannSnp(BaseEstimator, TransformerMixin):
-    def __init__(self, rank='full'):
+    def __init__(self, rank='full', return_data_frame=True):
         self.rank = rank
+        self.return_data_frame = return_data_frame
 
     def fit(self, X, y=None):
-        X = np.array(list(np.squeeze(X)))
+        X = _check_data(X)
         self.rank = len(X[0]) if self.rank == 'full' else self.rank
         self.ts = Snp(rank=self.rank).fit(X)
         return self
 
     def transform(self, X):
-        X = np.array(list(np.squeeze(X)))
+        X = _check_data(X)
         n_sub, p, _ = X.shape
         q = p * self.rank
-        Xout = np.empty((n_sub, q))
-        Xout = self.ts.transform(X)
-        return pd.DataFrame({'cov': list(Xout.reshape(n_sub, -1))})
-        # (sub, c*(c+1)/2)
+        X_out = np.empty((n_sub, q))
+        X_out = self.ts.transform(X)
+        if self.return_data_frame:
+            X_out = pd.DataFrame(X_out)
+        return X_out  # (sub, c*(c+1)/2)
 
 
 class Snp(TransformerMixin):
