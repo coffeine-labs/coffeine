@@ -5,10 +5,10 @@ import matplotlib.pyplot as plt
 import mne
 
 from meegpowreg.power_features import compute_features
-from meegpowreg.spfiltering import ProjSPoCSpace
+from meegpowreg.spatial_filters import ProjSPoCSpace
 
 
-def test_spfiltering():
+def test_spatial_filters():
     n_compo = 'full'
     scale = 'auto'
     reg = 0

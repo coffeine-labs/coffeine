@@ -22,7 +22,6 @@ def fstd(y):
 
 def _get_scale(X, scale):
     if scale == 'auto':
-        #  scale = 1 / np.mean([[np.trace(y) for y in x] for x in X])
         scale = 1 / np.mean([np.trace(x) for x in X])
     return scale
 
@@ -72,7 +71,6 @@ class ProjCommonSpace(BaseEstimator, TransformerMixin):
         for sub in range(n_sub):
             Xout[sub] = filters @ Xs[sub] @ filters.T
             Xout[sub] += self.reg * np.eye(self.n_compo)
-        #  return Xout  # (sub , compo, compo)
         return pd.DataFrame({'cov': list(Xout)})  # (sub , compo, compo)
 
 

@@ -24,6 +24,18 @@ Combining magnetoencephalography with magnetic resonance imaging enhances learni
 *eLife*, 9:e54055, 2020
 <https://elifesciences.org/articles/54055>
 
+The filter bank pipelines (across multiple frequency bands) can the thought of as follows:
+
+<img width="1380" alt="meeg_pipelines" src="https://user-images.githubusercontent.com/1908618/115611659-a6d5ab80-a2ea-11eb-935c-006cad4fc8e5.png">
+
+After preprocessing, covariance matrices can be projected to mitigate field spread and deal with rank deficient signals.
+Subsequently, vectorization is performed to extract column features from the variance, covariance or both.
+The Riemannian embedding is special in mititgating field spread and providing vectorization in 1 step.
+It can be combined with dimensionality reduction in the projection step to deal with rank deficinency.
+Finally, a statistical learning algorithm is applied.
+
+The represnetation, projection and vectorization steps are separately done for each frequency band.
+
 ## Installation of Python package
 
 <!-- To install the package, simply do: -->
@@ -65,16 +77,15 @@ data_dir = os.path.join(data_path, 'MEG', 'sample')
 raw_fname = os.path.join(data_dir, 'sample_audvis_raw.fif')
 
 raw = mne.io.read_raw_fif(raw_fname, verbose=False)
-raw = raw.copy().crop(0, 200).pick(
-list(range(2)) + list(range(330, 333))  # take some MEG and EEG
-)
+# pick some MEG and EEG channels after cropping
+raw = raw.copy().crop(0, 200).pick([0, 1, 330, 331, 332])
 
 fbands = {'alpha': (8.0, 15.0), 'beta': (15.0, 30.0)}
 
 features, _ = compute_features(raw, fbands=fbands)
 ```
 
-### make_pipelines
+### make_filter_bank_models
 
 The following models are implemented:
 
@@ -93,27 +104,27 @@ Use case example:
 ```python
 import numpy as np
 import pandas as pd
-from meegpowreg import make_pipelines
+from meegpowreg import make_filter_bank_regressor
 
-fbands = {'alpha': (8.0, 15.0), 'beta': (15.0, 30.0)}
-n_fb = len(fbands)
-n_sub = 10
-n_ch = 4
+freq_bands = {'alpha': (8.0, 15.0), 'beta': (15.0, 30.0)}
+n_freq_bands = len(freq_bands)
+n_subjects = 10
+n_channels = 4
 
-# Toy data
-Xcov = np.random.randn(n_sub, n_fb, n_ch, n_ch)
-for sub in range(n_sub):
-    for fb in range(n_fb):
-        Xcov[sub, fb] = Xcov[sub, fb] @ Xcov[sub, fb].T
-Xcov = list(Xcov.transpose((1, 0, 2, 3)))
-X_df = pd.DataFrame(dict(zip(list(fbands.keys()), map(list, Xcov))))
-X_df['drug'] = np.random.randint(2, size=n_sub)
+# Make toy data
+X_cov = np.random.randn(n_subjects, n_freq_bands, n_channels, n_channels)
+for sub in range(n_subjects):
+    for fb in range(n_freq_bands):
+        X_cov[sub, fb] = X_cov[sub, fb] @ X_cov[sub, fb].T
+X_df = pd.DataFrame(
+  {band: list(X_cov[:, ii]) for ii, band in enumerate(freq_bands)})
+X_df['drug'] = np.random.randint(2, size=n_subjects)
 y = np.random.randn(len(X_df))
 
 # Models
-pipelines = make_pipelines(fb_cols=fbands.keys(), expand=True)
-model = pipelines['riemann']
-model.fit(X_df, y)
+fb_model = make_filter_bank_regressor(names=freq_bands.keys(),
+                                      method='riemann')
+fb_model.fit(X_df, y)
 ```
 
 ## Cite

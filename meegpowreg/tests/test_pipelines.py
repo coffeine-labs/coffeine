@@ -1,34 +1,41 @@
 import numpy as np
 import pandas as pd
 import pytest
-from meegpowreg.pipelines import make_pipelines
+from meegpowreg.pipelines import (make_filter_bank_regressor,
+                                  make_filter_bank_classifier)
 
-fbands = {'alpha': (8.0, 15.0), 'beta': (15.0, 30.0)}
-n_sub = 10
-n_ch = 4
-n_fb = len(fbands)
-
-pipelines = make_pipelines(
-    fb_cols=fbands.keys(),
-    expand=True
-)
+frequency_bands = {'alpha': (8.0, 15.0), 'beta': (15.0, 30.0)}
+n_subjects = 10
+n_channels = 4
+n_frequency_bands = len(frequency_bands)
 
 
 @pytest.fixture
 def toy_data():
-    Xcov = np.random.randn(n_sub, n_fb, n_ch, n_ch)
-    for sub in range(n_sub):
-        for fb in range(n_fb):
-            Xcov[sub, fb] = Xcov[sub, fb] @ Xcov[sub, fb].T
-    Xcov = list(Xcov.transpose((1, 0, 2, 3)))
-    df = pd.DataFrame(dict(zip(list(fbands.keys()), map(list, Xcov))))
-    df['drug'] = np.random.randint(2, size=n_sub)
-    y = np.random.randn(len(df))
+    X_cov = np.random.randn(
+        n_subjects, n_frequency_bands, n_channels, n_channels)
+    for sub in range(n_subjects):
+        for fb in range(n_frequency_bands):
+            X_cov[sub, fb] = X_cov[sub, fb] @ X_cov[sub, fb].T
+    df = pd.DataFrame({band: list(X_cov[:, ii])
+                       for ii, band in enumerate(frequency_bands)})
+    df['drug'] = np.random.randint(2, size=n_subjects)
+    rng = np.random.RandomState(2021)
+    y = rng.randn(len(df))
     return df, y
 
 
-@pytest.mark.parametrize('pipeline_name', pipelines)
-def test_pipelines(pipeline_name, toy_data):
-    model = pipelines[pipeline_name]
+def test_pipelines(toy_data):
+    regressor = make_filter_bank_regressor(
+        names=frequency_bands.keys(),
+        method='riemann',
+        categorical_interaction="drug")
     X_df, y = toy_data
-    model.fit(X_df, y)
+    regressor.fit(X_df, y)
+
+    regressor = make_filter_bank_classifier(
+        names=frequency_bands.keys(),
+        method='riemann',
+        categorical_interaction="drug")
+    y_bin = np.sign(y - np.mean(y))
+    regressor.fit(X_df, y_bin)
