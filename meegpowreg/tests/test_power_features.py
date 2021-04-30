@@ -1,5 +1,7 @@
 import os
+import pytest
 import mne
+
 
 from meegpowreg.power_features import compute_features
 
@@ -36,6 +38,11 @@ def test_compute_features_raw():
             (n_fb * n_channels, n_fb * n_channels))
     assert (computed_features['cospectral_covs'].shape[1:] ==
             (n_channels, n_channels))
+
+    with pytest.raises(ValueError, match=r".* specified .*"):
+        computed_features, res = compute_features(
+            raw, features='covs haha',
+            frequency_bands=frequency_bands)
 
 
 def test_compute_features_epochs():
