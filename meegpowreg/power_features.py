@@ -161,7 +161,8 @@ def compute_features(
 
     if ('cross_frequency_covs' in features or
             'cross_frequency_corrs' in features):
-        cross_frequency_covs, cross_frequency_corrs = _compute_cross_frequency_covs(
+        (cross_frequency_covs,
+            cross_frequency_corrs) = _compute_cross_frequency_covs(
             epochs_clean, frequency_bands_)
         computed_features['cross_frequency_covs'] = cross_frequency_covs
         computed_features['cross_frequency_corrs'] = cross_frequency_corrs
