@@ -7,7 +7,7 @@ data_path = mne.datasets.sample.data_path()
 data_dir = os.path.join(data_path, 'MEG', 'sample')
 raw_fname = os.path.join(data_dir, 'sample_audvis_raw.fif')
 
-fbands = {'alpha': (8.0, 15.0), 'beta': (15.0, 30.0)}
+frequency_bands = {'alpha': (8.0, 15.0), 'beta': (15.0, 30.0)}
 
 
 def test_compute_features_raw():
@@ -16,21 +16,26 @@ def test_compute_features_raw():
         [0, 1, 330, 331, 332]  # take some MEG and EEG
     )
     raw.info.normalize_proj()
-    features, res = compute_features(raw, fbands=fbands)
+    computed_features, res = compute_features(
+        raw, features=['psds', 'covs', 'cross_frequency_covs',
+                       'cross_frequency_corrs', 'cospectral_covs'],
+        frequency_bands=frequency_bands)
     n_channels = len(raw.ch_names)
-    n_freqs = len(features['freqs'])
-    n_fb = len(fbands)
+    n_freqs = len(res['freqs'])
+    n_fb = len(frequency_bands)
     assert (
-        set(features.keys()) ==
-        {'psds', 'freqs', 'covs', 'xfreqcovs', 'xfreqcorrs', 'cospcovs'}
+        set(computed_features.keys()) ==
+        {'psds', 'covs', 'cross_frequency_covs',
+         'cross_frequency_corrs', 'cospectral_covs'}
     )
-    assert features['psds'].shape == (n_channels, n_freqs)
-    assert features['covs'].shape == (n_fb, n_channels, n_channels)
-    assert features['xfreqcovs'].shape == (n_fb * n_channels,
-                                           n_fb * n_channels)
-    assert features['xfreqcorrs'].shape == (n_fb * n_channels,
-                                            n_fb * n_channels)
-    assert features['cospcovs'].shape[1:] == (n_channels, n_channels)
+    assert computed_features['psds'].shape == (n_channels, n_freqs)
+    assert computed_features['covs'].shape == (n_fb, n_channels, n_channels)
+    assert (computed_features['cross_frequency_covs'].shape ==
+            (n_fb * n_channels, n_fb * n_channels))
+    assert (computed_features['cross_frequency_corrs'].shape ==
+            (n_fb * n_channels, n_fb * n_channels))
+    assert (computed_features['cospectral_covs'].shape[1:] ==
+            (n_channels, n_channels))
 
 
 def test_compute_features_epochs():
@@ -46,18 +51,23 @@ def test_compute_features_epochs():
     epochs = mne.Epochs(raw, events, event_id=3000, tmin=0, tmax=60.,
                         proj=True, baseline=None, reject=None,
                         preload=True, decim=1)
-    features, res = compute_features(epochs, fbands=fbands)
+    computed_features, res = compute_features(
+        epochs, features=['psds', 'covs', 'cross_frequency_covs',
+                          'cross_frequency_corrs', 'cospectral_covs'],
+        frequency_bands=frequency_bands)
     n_channels = len(raw.ch_names)
-    n_freqs = len(features['freqs'])
-    n_fb = len(fbands)
-    assert (
-        set(features.keys()) ==
-        {'psds', 'freqs', 'covs', 'xfreqcovs', 'xfreqcorrs', 'cospcovs'}
-    )
-    assert features['psds'].shape == (n_channels, n_freqs)
-    assert features['covs'].shape == (n_fb, n_channels, n_channels)
-    assert features['xfreqcovs'].shape == (n_fb * n_channels,
-                                           n_fb * n_channels)
-    assert features['xfreqcorrs'].shape == (n_fb * n_channels,
-                                            n_fb * n_channels)
-    assert features['cospcovs'].shape[1:] == (n_channels, n_channels)
+    n_freqs = len(res['freqs'])
+    n_fb = len(frequency_bands)
+    assert set(computed_features.keys()) == {'psds', 'covs',
+                                             'cross_frequency_covs',
+                                             'cross_frequency_corrs',
+                                             'cospectral_covs'}
+
+    assert computed_features['psds'].shape == (n_channels, n_freqs)
+    assert computed_features['covs'].shape == (n_fb, n_channels, n_channels)
+    assert (computed_features['cross_frequency_covs'].shape ==
+            (n_fb * n_channels, n_fb * n_channels))
+    assert (computed_features['cross_frequency_corrs'].shape ==
+            (n_fb * n_channels, n_fb * n_channels))
+    assert (computed_features['cospectral_covs'].shape[1:] ==
+            (n_channels, n_channels))

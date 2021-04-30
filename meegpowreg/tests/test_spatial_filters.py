@@ -24,8 +24,8 @@ def test_spatial_filters():
     raw.info.normalize_proj()
     info = raw.info
 
-    fbands = {'alpha': (8.0, 15.0)}
-    features, _ = compute_features(raw, fbands=fbands)
+    frequency_bands = {'alpha': (8.0, 15.0)}
+    features, _ = compute_features(raw, frequency_bands=frequency_bands)
     cov = features['covs'][0]
     X = np.array([cov, cov])
     y = np.random.randint(100, size=2)

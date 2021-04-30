@@ -80,9 +80,9 @@ raw = mne.io.read_raw_fif(raw_fname, verbose=False)
 # pick some MEG and EEG channels after cropping
 raw = raw.copy().crop(0, 200).pick([0, 1, 330, 331, 332])
 
-fbands = {'alpha': (8.0, 15.0), 'beta': (15.0, 30.0)}
+frequency_bands = {'alpha': (8.0, 15.0), 'beta': (15.0, 30.0)}
 
-features, _ = compute_features(raw, fbands=fbands)
+features, _ = compute_features(raw, frequency_bands=frequency_bands)
 ```
 
 ### make_filter_bank_models

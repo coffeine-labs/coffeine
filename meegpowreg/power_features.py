@@ -6,9 +6,9 @@ from mne.io import BaseRaw
 from mne.epochs import BaseEpochs
 
 
-def _compute_covs_raw(raw, clean_events, fbands, duration):
+def _compute_covs_raw(raw, clean_events, frequency_bands, duration):
     covs = list()
-    for _, fb in fbands.items():
+    for _, fb in frequency_bands.items():
         rf = raw.copy().load_data().filter(fb[0], fb[1])
         ec = mne.Epochs(
             rf, clean_events, event_id=3000, tmin=0, tmax=duration,
@@ -19,25 +19,25 @@ def _compute_covs_raw(raw, clean_events, fbands, duration):
     return np.array(covs)
 
 
-def _compute_covs_epochs(epochs, fbands):
+def _compute_covs_epochs(epochs, frequency_bands):
     covs = list()
-    for _, fb in fbands.items():
+    for _, fb in frequency_bands.items():
         ec = epochs.copy().load_data().filter(fb[0], fb[1])
         cov = mne.compute_covariance(ec, method='oas', rank=None)
         covs.append(cov.data)
     return np.array(covs)
 
 
-def _compute_xfreq_covs(epochs, fbands):
-    epochs_fbands = []
-    for ii, (fbname, fb) in enumerate(fbands.items()):
+def _compute_cross_frequency_covs(epochs, frequency_bands):
+    epochs_frequency_bands = []
+    for ii, (fbname, fb) in enumerate(frequency_bands.items()):
         ef = epochs.copy().load_data().filter(fb[0], fb[1])
         for ch in ef.ch_names:
             ef.rename_channels({ch: ch+'_'+fbname})
-        epochs_fbands.append(ef)
+        epochs_frequency_bands.append(ef)
 
-    epochs_final = epochs_fbands[0]
-    for e in epochs_fbands[1:]:
+    epochs_final = epochs_frequency_bands[0]
+    for e in epochs_frequency_bands[1:]:
         epochs_final.add_channels([e], force_update_info=True)
     n_chan = epochs_final.info['nchan']
     cov = mne.compute_covariance(epochs_final, method='oas', rank=None)
@@ -46,15 +46,16 @@ def _compute_xfreq_covs(epochs, fbands):
     return cov.data, corr
 
 
-def _compute_cosp_covs(epochs, n_fft, n_overlap, fmin, fmax, fs):
+def _compute_cospectral_covs(epochs, n_fft, n_overlap, fmin, fmax, fs):
     X = epochs.get_data()
-    cosp_covs = CospCovariances(window=n_fft, overlap=n_overlap/n_fft,
-                                fmin=fmin, fmax=fmax, fs=fs)
-    return cosp_covs.transform(X).mean(axis=0).transpose((2, 0, 1))
+    cospectral_covs = CospCovariances(window=n_fft, overlap=n_overlap/n_fft,
+                                      fmin=fmin, fmax=fmax, fs=fs)
+    return cospectral_covs.transform(X).mean(axis=0).transpose((2, 0, 1))
 
 
 def compute_features(
         inst,
+        features=('psds', 'covs'),
         duration=60.,
         shift=10.,
         n_fft=512,
@@ -62,7 +63,7 @@ def compute_features(
         fs=63.0,
         fmin=0,
         fmax=30,
-        fbands={'alpha': (8.0, 12.0)},
+        frequency_bands=None,
         clean_func=lambda x: x,
         n_jobs=1):
     """Compute features from raw data or clean epochs.
@@ -71,6 +72,11 @@ def compute_features(
     ----------
     inst : Raw object | Epochs object
         An instance of Raw or Epochs.
+    features : str | list of str
+        The features to be computed. It can be 'psds', 'covs',
+        'cross_frequency_covs', 'cross_frequency_corrs' or
+        'cospectral_covs'. If nothing is provided, defaults to
+        ('psds', 'covs').
     duration : float
         The length of the epochs. If nothing is provided, defaults to 60.
     shift : float
@@ -95,7 +101,7 @@ def compute_features(
         The maximal frequency to be returned for the estimation of cospectral
         covariance matrix and for PSD computation.
         If nothing is provided, defaults to 30.
-    fbands : dict
+    frequency_bands : dict
         The frequency bands with which inst is filtered.
         If nothing is provided, defaults to {'alpha': (8.0, 12.0)}.
     clean_func : lambda function
@@ -105,11 +111,16 @@ def compute_features(
 
     Returns
     -------
-    features : dict
+    computed_features : dict
         The features extracted.
     res : dict
-        The number of epochs, good epochs and clean epochs.
+        The number of epochs, good epochs, clean epochs and frequencies.
     """
+    frequency_bands_ = {'alpha': (8.0, 12.0)}
+    if frequency_bands is not None:
+        frequency_bands_.update(frequency_bands)
+    computed_features = {}
+
     if isinstance(inst, BaseRaw):
         events = mne.make_fixed_length_events(inst, id=3000,
                                               start=0,
@@ -120,28 +131,18 @@ def compute_features(
                             preload=True, decim=1)
         epochs_clean = clean_func(epochs)
         clean_events = events[epochs_clean.selection]
-        covs = _compute_covs_raw(inst, clean_events, fbands, duration)
+        if 'covs' in features:
+            covs = _compute_covs_raw(inst, clean_events, frequency_bands_,
+                                     duration)
+            computed_features['covs'] = covs
 
     elif isinstance(inst, BaseEpochs):
         epochs_clean = clean_func(inst)
-        covs = _compute_covs_epochs(epochs_clean, fbands)
+        if 'covs' in features:
+            covs = _compute_covs_epochs(epochs_clean, frequency_bands_)
+            computed_features['covs'] = covs
     else:
         raise ValueError('Inst must be raw or epochs.')
-
-    psds_clean, freqs = mne.time_frequency.psd_welch(
-        epochs_clean, fmin=fmin, fmax=fmax, n_fft=n_fft, n_overlap=n_overlap,
-        average='mean', picks=None)
-    psds = trim_mean(psds_clean, 0.25, axis=0)
-
-    xfreqcovs, xfreqcorrs = _compute_xfreq_covs(epochs_clean, fbands)
-    cospcovs = _compute_cosp_covs(epochs_clean, n_fft, n_overlap,
-                                  fmin, fmax, fs)
-
-    features = {'psds': psds, 'freqs': freqs,
-                'covs': covs,
-                'xfreqcovs': xfreqcovs,
-                'xfreqcorrs': xfreqcorrs,
-                'cospcovs': cospcovs}
 
     res = dict(n_good_epochs=len(inst),
                n_clean_epochs=len(epochs_clean))
@@ -149,4 +150,27 @@ def compute_features(
         res['n_epochs'] = len(events)
     else:
         res['n_epochs'] = len(inst.drop_log)
-    return features, res
+
+    if 'psds' in features:
+        psds_clean, freqs = mne.time_frequency.psd_welch(
+                epochs_clean, fmin=fmin, fmax=fmax, n_fft=n_fft,
+                n_overlap=n_overlap, average='mean', picks=None)
+        psds = trim_mean(psds_clean, 0.25, axis=0)
+        computed_features['psds'] = psds
+        res['freqs'] = freqs
+
+    if ('cross_frequency_covs' in features or
+            'cross_frequency_corrs' in features):
+        (cross_frequency_covs,
+            cross_frequency_corrs) = _compute_cross_frequency_covs(
+            epochs_clean, frequency_bands_)
+        computed_features['cross_frequency_covs'] = cross_frequency_covs
+        computed_features['cross_frequency_corrs'] = cross_frequency_corrs
+
+    if 'cospectral_covs' in features:
+        cospectral_covs = _compute_cospectral_covs(epochs_clean, n_fft,
+                                                   n_overlap,
+                                                   fmin, fmax, fs)
+        computed_features['cospectral_covs'] = cospectral_covs
+
+    return computed_features, res
