@@ -28,7 +28,7 @@ def _compute_covs_epochs(epochs, frequency_bands):
     return np.array(covs)
 
 
-def _compute_xfreq_covs(epochs, frequency_bands):
+def _compute_cross_frequency_covs(epochs, frequency_bands):
     epochs_frequency_bands = []
     for ii, (fbname, fb) in enumerate(frequency_bands.items()):
         ef = epochs.copy().load_data().filter(fb[0], fb[1])
@@ -46,11 +46,11 @@ def _compute_xfreq_covs(epochs, frequency_bands):
     return cov.data, corr
 
 
-def _compute_cosp_covs(epochs, n_fft, n_overlap, fmin, fmax, fs):
+def _compute_cospectral_covs(epochs, n_fft, n_overlap, fmin, fmax, fs):
     X = epochs.get_data()
-    cosp_covs = CospCovariances(window=n_fft, overlap=n_overlap/n_fft,
-                                fmin=fmin, fmax=fmax, fs=fs)
-    return cosp_covs.transform(X).mean(axis=0).transpose((2, 0, 1))
+    cospectral_covs = CospCovariances(window=n_fft, overlap=n_overlap/n_fft,
+                                      fmin=fmin, fmax=fmax, fs=fs)
+    return cospectral_covs.transform(X).mean(axis=0).transpose((2, 0, 1))
 
 
 def compute_features(
@@ -161,14 +161,15 @@ def compute_features(
 
     if ('cross_frequency_covs' in features or
             'cross_frequency_corrs' in features):
-        cross_frequency_covs, cross_frequency_corrs = _compute_xfreq_covs(
+        cross_frequency_covs, cross_frequency_corrs = _compute_cross_frequency_covs(
             epochs_clean, frequency_bands_)
         computed_features['cross_frequency_covs'] = cross_frequency_covs
         computed_features['cross_frequency_corrs'] = cross_frequency_corrs
 
     if 'cospectral_covs' in features:
-        cospectral_covs = _compute_cosp_covs(epochs_clean, n_fft, n_overlap,
-                                             fmin, fmax, fs)
+        cospectral_covs = _compute_cospectral_covs(epochs_clean, n_fft,
+                                                   n_overlap,
+                                                   fmin, fmax, fs)
         computed_features['cospectral_covs'] = cospectral_covs
 
     return computed_features, res
