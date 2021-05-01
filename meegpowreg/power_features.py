@@ -116,6 +116,10 @@ def compute_features(
     res : dict
         The number of epochs, good epochs, clean epochs and frequencies.
     """
+    features_ = (
+        'psds', 'covs', 'cross_frequency_covs', 'cross_frequency_corrs',
+        'cospectral_covs')
+
     frequency_bands_ = {'alpha': (8.0, 12.0)}
     if frequency_bands is not None:
         frequency_bands_.update(frequency_bands)
@@ -150,6 +154,13 @@ def compute_features(
         res['n_epochs'] = len(events)
     else:
         res['n_epochs'] = len(inst.drop_log)
+
+    if isinstance(features, str):
+        features = [features]
+    for feature in features:
+        if feature not in features_:
+            raise ValueError(
+                f"The `features` ('{feature}') you specified is unknown.")
 
     if 'psds' in features:
         psds_clean, freqs = mne.time_frequency.psd_welch(
