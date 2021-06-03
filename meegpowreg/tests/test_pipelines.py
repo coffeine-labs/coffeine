@@ -1,8 +1,8 @@
 import numpy as np
 import pandas as pd
 import pytest
-from meegpowreg.pipelines import (make_filter_bank_regressor,
-                                  make_filter_bank_classifier)
+from meegpowreg import (make_filter_bank_regressor,
+                        make_filter_bank_classifier)
 
 frequency_bands = {'alpha': (8.0, 15.0), 'beta': (15.0, 30.0)}
 n_subjects = 10
