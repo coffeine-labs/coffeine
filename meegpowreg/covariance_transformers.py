@@ -12,7 +12,13 @@ def _check_data(X):
     if X.values.dtype == 'object':
         # first remove unnecessary dimensions,
         # then stack to 3d data
-        out = np.stack(np.squeeze(X.values))
+        values = X.values
+        if values.shape[1] == 1:
+            values = values[:, 0]
+        out = np.stack(values)
+        if out.ndim == 2:  # deal with single sample
+            assert out.shape[0] == out.shape[1]
+            out = out[np.newaxis, :, :]
     return out
 
 
