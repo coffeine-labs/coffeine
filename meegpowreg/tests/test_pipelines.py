@@ -4,8 +4,6 @@ import pytest
 from meegpowreg import (make_filter_bank_regressor,
                         make_filter_bank_classifier)
 
-from meegpowreg.spatial_filters import ProjCommonSpace
-
 frequency_bands = {'alpha': (8.0, 15.0), 'beta': (15.0, 30.0)}
 n_subjects = 10
 n_channels = 4
@@ -60,22 +58,3 @@ def test_pipelines(toy_data):
         categorical_interaction="drug")
     y_bin = np.sign(y - np.mean(y))
     regressor.fit(X_df, y_bin)
-
-
-def test_one_sample():
-    n_compo = 'full'
-    scale = 'auto'
-    reg = 0
-
-    freq_bands = {'alpha': (8.0, 15.0)}
-    n_freq_bands = len(freq_bands)
-    n_subjects = 1
-    n_channels = 4
-
-    X_cov = np.random.randn(n_freq_bands, n_subjects, n_channels, n_channels)
-    X_df = pd.DataFrame(
-        {band: list(X_cov[:, ii]) for ii, band in enumerate(freq_bands)})
-
-    riemann = ProjCommonSpace(scale=scale, n_compo=n_compo, reg=reg)
-    riemann.fit(X_df)
-    riemann.transform(X_df)
