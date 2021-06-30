@@ -6,8 +6,7 @@ import matplotlib.pyplot as plt
 import mne
 
 from meegpowreg.power_features import compute_features
-from meegpowreg.spatial_filters import ProjSPoCSpace
-from meegpowreg.spatial_filters import ProjCommonSpace
+from meegpowreg.spatial_filters import ProjSPoCSpace, ProjCommonSpace
 
 
 def test_spatial_filters():
