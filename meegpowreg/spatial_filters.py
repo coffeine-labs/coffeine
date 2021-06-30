@@ -26,6 +26,15 @@ def _get_scale(X, scale):
     return scale
 
 
+def _check_X_df(X):
+    if hasattr(X, 'values'):
+        X = np.array(list(np.squeeze(X))).astype(float)
+        if X.ndim == 2:  # deal with single sample
+            assert X.shape[0] == X.shape[1]
+            X = X[np.newaxis, :, :]
+    return X
+
+
 class ProjIdentitySpace(BaseEstimator, TransformerMixin):
     def __init__(self):
         return None
@@ -45,8 +54,7 @@ class ProjCommonSpace(BaseEstimator, TransformerMixin):
         self.reg = reg
 
     def fit(self, X, y=None):
-        if hasattr(X, 'values'):
-            X = np.array(list(np.squeeze(X))).astype(float)
+        X = _check_X_df(X)
         self.n_compo = len(X[0]) if self.n_compo == 'full' else self.n_compo
         self.scale_ = _get_scale(X, self.scale)
         self.filters_ = []
@@ -61,8 +69,7 @@ class ProjCommonSpace(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X):
-        if hasattr(X, 'values'):
-            X = np.array(list(np.squeeze(X))).astype(float)
+        X = _check_X_df(X)
         n_sub, _, _ = X.shape
         self.n_compo = len(X[0]) if self.n_compo == 'full' else self.n_compo
         Xout = np.empty((n_sub, self.n_compo, self.n_compo))
@@ -82,8 +89,7 @@ class ProjLWSpace(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X):
-        if hasattr(X, 'values'):
-            X = np.array(list(np.squeeze(X))).astype(float)
+        X = _check_X_df(X)
         n_sub, p, _ = X.shape
         Xout = np.empty((n_sub, p, p))
         for sub in range(n_sub):
@@ -96,8 +102,7 @@ class ProjRandomSpace(BaseEstimator, TransformerMixin):
         self.n_compo = n_compo
 
     def fit(self, X, y=None):
-        if hasattr(X, 'values'):
-            X = np.array(list(np.squeeze(X))).astype(float)
+        X = _check_X_df(X)
         self.n_compo = len(X[0]) if self.n_compo == 'full' else self.n_compo
         n_sub, n_chan, _ = X.shape
         U = np.linalg.svd(np.random.rand(n_chan, n_chan))[0][:self.n_compo]
@@ -105,8 +110,7 @@ class ProjRandomSpace(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X):
-        if hasattr(X, 'values'):
-            X = np.array(list(np.squeeze(X))).astype(float)
+        X = _check_X_df(X)
         n_sub = len(X)
         Xout = np.empty((n_sub, self.n_compo, self.n_compo))
         filter_ = self.filter_  # (compo, chan)
@@ -123,8 +127,7 @@ class ProjSPoCSpace(BaseEstimator, TransformerMixin):
         self.reg = reg
 
     def fit(self, X, y=None):
-        if hasattr(X, 'values'):
-            X = np.array(list(np.squeeze(X))).astype(float)
+        X = _check_X_df(X)
         self.n_compo = len(X[0]) if self.n_compo == 'full' else self.n_compo
         target = fstd(y)
         self.scale_ = _get_scale(X, self.scale)
@@ -141,8 +144,7 @@ class ProjSPoCSpace(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self, X):
-        if hasattr(X, 'values'):
-            X = np.array(list(np.squeeze(X))).astype(float)
+        X = _check_X_df(X)
         n_sub = len(X)
         Xout = np.empty((n_sub, self.n_compo, self.n_compo))
         Xs = self.scale_ * X

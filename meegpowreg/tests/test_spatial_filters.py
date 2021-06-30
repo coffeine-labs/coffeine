@@ -1,11 +1,12 @@
 import os
 
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 import mne
 
 from meegpowreg.power_features import compute_features
-from meegpowreg.spatial_filters import ProjSPoCSpace
+from meegpowreg.spatial_filters import ProjSPoCSpace, ProjCommonSpace
 
 
 def test_spatial_filters():
@@ -39,3 +40,22 @@ def test_spatial_filters():
                        name_format='', axes=ax[:n_compo], colorbar=False)
     spoc.plot_filters(info=info, components=None, show=False,
                       name_format='', axes=ax[n_compo:], colorbar=False)
+
+
+def test_one_sample():
+    n_compo = 'full'
+    scale = 'auto'
+    reg = 0
+
+    freq_bands = {'alpha': (8.0, 15.0)}
+    n_freq_bands = len(freq_bands)
+    n_subjects = 1
+    n_channels = 4
+
+    X_cov = np.random.randn(n_freq_bands, n_subjects, n_channels, n_channels)
+    X_df = pd.DataFrame(
+        {band: list(X_cov[:, ii]) for ii, band in enumerate(freq_bands)})
+
+    riemann = ProjCommonSpace(scale=scale, n_compo=n_compo, reg=reg)
+    riemann.fit(X_df)
+    riemann.transform(X_df)
