@@ -1,11 +1,13 @@
-# Power regression pipelines for MEG/EEG signals
+# Covariance Data Frames for Predictive M/EEG Pipelines
 
 ![Build](https://github.com/DavidSabbagh/meegpowreg/workflows/tests/badge.svg)
 <!-- ![Codecov](https://codecov.io/gh/DavidSabbagh/meegpowreg/branch/main/graph/badge.svg) -->
 
 ## Summary
 
-This library implements the methods used in the following articles:
+The `coffeine` library implements provides a high-level interface to the predictive modeling techniques focusing on the M/EEG covariance matrix as representation of the signal. The methods implemented here are built ontop of [PyRiemann](https://pyriemann.readthedocs.io/en/latest/installing.html) while the API is designed with the more specific usecase of building biomedical prediction models from M/EEG signals. For this purpose, `coffeine` uses DataFrames to handle multiple covariance matrices alongside scalar features. Vectorizaiton and model composition functions are provided that handle composition of scikit-learn compatible modeling pipelines from covariances alongside other types of features.
+
+For details on the feature extraction pipelines and statistical models, please consider the following references:
 
 [1] D. Sabbagh, P. Ablin, G. Varoquaux, A. Gramfort, and D. A. Engemann.
 Predictive regression modeling with MEG/EEG: from source power to signals and cognitive states.
