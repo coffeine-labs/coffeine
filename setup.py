@@ -17,12 +17,12 @@ if version is None:
 
 DISTNAME = 'meegpowreg'
 DESCRIPTION = descr
-MAINTAINER = 'David Sabbagh'
-MAINTAINER_EMAIL = 'david@sabbagh.fr'
+MAINTAINER = 'Denis Engemann'
+MAINTAINER_EMAIL = 'denis.engemann@gmail.com'
 LICENSE = 'MIT'
-DOWNLOAD_URL = 'https://github.com/DavidSabbagh/meegpowreg.git'
+DOWNLOAD_URL = 'https://github.com/dengemann/coffeine.git'
 VERSION = version
-URL = 'https://github.com/DavidSabbagh/meegpowreg'
+URL = 'https://github.com/dengemann/coffeine'
 
 if __name__ == "__main__":
     setup(name=DISTNAME,
