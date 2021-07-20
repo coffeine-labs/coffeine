@@ -6,7 +6,7 @@ from setuptools import setup, find_packages
 descr = """M/EEG power regression pipelines in Python"""
 
 version = None
-with open(os.path.join('meegpowreg', '__init__.py'), 'r') as fid:
+with open(os.path.join('coffeine', '__init__.py'), 'r') as fid:
     for line in (line.strip() for line in fid):
         if line.startswith('__version__'):
             version = line.split('=')[1].strip().strip('\'')
