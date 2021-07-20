@@ -15,7 +15,7 @@ if version is None:
     raise RuntimeError('Could not determine version')
 
 
-DISTNAME = 'meegpowreg'
+DISTNAME = 'coffeine'
 DESCRIPTION = descr
 MAINTAINER = 'Denis Engemann'
 MAINTAINER_EMAIL = 'denis.engemann@gmail.com'
