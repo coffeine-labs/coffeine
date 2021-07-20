@@ -1,7 +1,7 @@
 # Covariance Data Frames for Predictive M/EEG Pipelines
 
-![Build](https://github.com/DavidSabbagh/meegpowreg/workflows/tests/badge.svg)
-<!-- ![Codecov](https://codecov.io/gh/DavidSabbagh/meegpowreg/branch/main/graph/badge.svg) -->
+![Build](https://github.com/DavidSabbagh/coffeine/workflows/tests/badge.svg)
+<!-- ![Codecov](https://codecov.io/gh/DavidSabbagh/coffeine/branch/main/graph/badge.svg) -->
 
 ## Summary
 
@@ -42,7 +42,7 @@ The represnetation, projection and vectorization steps are separately done for e
 
 <!-- To install the package, simply do: -->
 <!--  -->
-<!--   `$ pip install meegpowreg` -->
+<!--   `$ pip install coffeine` -->
 
 You can clone this library, and then do:
 
@@ -50,7 +50,7 @@ You can clone this library, and then do:
 
 Everything worked if the following command do not return any error:
 
-  `$ python -c 'import meegpowreg'`
+  `$ python -c 'import coffeine'`
 
 ## Use with Python
 
@@ -72,7 +72,7 @@ Use case example:
 import os
 import mne
 
-from meegpowreg import compute_features
+from coffeine import compute_features
 
 data_path = mne.datasets.sample.data_path()
 data_dir = os.path.join(data_path, 'MEG', 'sample')
@@ -106,7 +106,7 @@ Use case example:
 ```python
 import numpy as np
 import pandas as pd
-from meegpowreg import make_filter_bank_regressor
+from coffeine import make_filter_bank_regressor
 
 freq_bands = {'alpha': (8.0, 15.0), 'beta': (15.0, 30.0)}
 n_freq_bands = len(freq_bands)

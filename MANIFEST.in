@@ -1,3 +1,3 @@
 include LICENSE
-recursive-include meegpowreg *.py
+recursive-include coffeine *.py
 exclude requirements.txt
