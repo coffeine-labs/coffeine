@@ -43,7 +43,7 @@ if __name__ == "__main__":
               'pandas>=1.0.0',
               'pyriemann>=0.2.7',
               'scikit-learn>=0.24',
-              'mne>=0.24'
+              'mne[data]>=0.24'
           ],
           classifiers=[
               'Intended Audience :: Science/Research',
