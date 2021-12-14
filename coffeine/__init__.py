@@ -19,7 +19,7 @@
 # Dev branch marker is: 'X.Y.devN' where N is an integer.
 #
 
-__version__ = '0.1.dev0'
+__version__ = '0.1'
 
 from .covariance_transformers import Riemann, Diag, LogDiag, ExpandFeatures, NaiveVec, RiemannSnp  # noqa
 
