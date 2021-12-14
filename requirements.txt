@@ -1,7 +1,7 @@
-numpy>=1.12
-scipy>=0.18.0
+numpy>=1.18.1
+scipy>=1.4.1
 matplotlib>=2.0.0
-pandas
-git+git://github.com/alexandrebarachant/pyriemann@master#egg=pyriemann
-scikit-learn>=0.23
-mne>=0.20 
+pandas>=1.0.0
+pyriemann>=0.2.7
+scikit-learn>=0.24
+mne>=0.24

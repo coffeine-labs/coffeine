@@ -1,11 +1,11 @@
 # Covariance Data Frames for Predictive M/EEG Pipelines
 
-![Build](https://github.com/dengemann/coffeine/workflows/tests/badge.svg)
-<!-- ![Codecov](https://codecov.io/gh/dengemann/coffeine/branch/main/graph/badge.svg) -->
+![Build](https://github.com/coffeine-labsdengemann/coffeine/workflows/tests/badge.svg)
+<!-- ![Codecov](https://codecov.io/gh/coffeine-labs/coffeine/branch/main/graph/badge.svg) -->
 
 ## Summary
 
-The `coffeine` library implements provides a high-level interface to the predictive modeling techniques focusing on the M/EEG covariance matrix as representation of the signal. The methods implemented here are built ontop of [PyRiemann](https://pyriemann.readthedocs.io/en/latest/installing.html) while the API is designed with the more specific usecase of building biomedical prediction models from M/EEG signals. For this purpose, `coffeine` uses DataFrames to handle multiple covariance matrices alongside scalar features. Vectorizaiton and model composition functions are provided that handle composition of scikit-learn compatible modeling pipelines from covariances alongside other types of features.
+The `coffeine` library implements provides a high-level interface to the predictive modeling techniques focusing on the M/EEG covariance matrix as representation of the signal. The methods implemented here are built on top of [PyRiemann](https://pyriemann.readthedocs.io/en/latest/installing.html) while the API is designed with the more specific use-case of building biomedical prediction models from M/EEG signals. For this purpose, `coffeine` uses DataFrames to handle multiple covariance matrices alongside scalar features. Vectorization and model composition functions are provided that handle composition of scikit-learn compatible modeling pipelines from covariances alongside other types of features.
 
 For details on the feature extraction pipelines and statistical models, please consider the following references:
 
@@ -26,17 +26,17 @@ Combining magnetoencephalography with magnetic resonance imaging enhances learni
 *eLife*, 9:e54055, 2020
 <https://elifesciences.org/articles/54055>
 
-The filter bank pipelines (across multiple frequency bands) can the thought of as follows:
+The filter-bank pipelines (across multiple frequency bands) can the thought of as follows:
 
 <img width="1380" alt="meeg_pipelines" src="https://user-images.githubusercontent.com/1908618/115611659-a6d5ab80-a2ea-11eb-935c-006cad4fc8e5.png">
 
 After preprocessing, covariance matrices can be projected to mitigate field spread and deal with rank deficient signals.
 Subsequently, vectorization is performed to extract column features from the variance, covariance or both.
-The Riemannian embedding is special in mititgating field spread and providing vectorization in 1 step.
-It can be combined with dimensionality reduction in the projection step to deal with rank deficinency.
+The Riemannian embedding is special in mitigating field spread and providing vectorization in 1 step.
+It can be combined with dimensionality reduction in the projection step to deal with rank deficiency.
 Finally, a statistical learning algorithm is applied.
 
-The represnetation, projection and vectorization steps are separately done for each frequency band.
+The representation, projection and vectorization steps are separately done for each frequency band.
 
 ## Installation of Python package
 

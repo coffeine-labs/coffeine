@@ -20,9 +20,9 @@ DESCRIPTION = descr
 MAINTAINER = 'Denis Engemann'
 MAINTAINER_EMAIL = 'denis.engemann@gmail.com'
 LICENSE = 'MIT'
-DOWNLOAD_URL = 'https://github.com/dengemann/coffeine.git'
+DOWNLOAD_URL = 'https://github.com/coffeine-labs/coffeine.git'
 VERSION = version
-URL = 'https://github.com/dengemann/coffeine'
+URL = 'https://github.com/coffeine-labs/coffeine'
 
 if __name__ == "__main__":
     setup(name=DISTNAME,
@@ -37,13 +37,13 @@ if __name__ == "__main__":
           long_description=open('README.md').read(),
           python_requires=">=3",
           install_requires=[
-              'numpy>=1.12',
-              'scipy>=0.18.0',
+              'numpy>=1.18.1',
+              'scipy>=1.4.1',
               'matplotlib>=2.0.0',
-              'pandas',
-              'pyriemann',
-              'scikit-learn>=0.23',
-              'mne>=0.20'
+              'pandas>=1.0.0',
+              'pyriemann>=0.2.7',
+              'scikit-learn>=0.24',
+              'mne>=0.24'
           ],
           classifiers=[
               'Intended Audience :: Science/Research',
