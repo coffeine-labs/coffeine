@@ -1,6 +1,6 @@
 # Covariance Data Frames for Predictive M/EEG Pipelines
 
-![Build](https://github.com/coffeine-labsdengemann/coffeine/workflows/tests/badge.svg)
+![Build](https://github.com/coffeine-labs/coffeine/workflows/tests/badge.svg)
 <!-- ![Codecov](https://codecov.io/gh/coffeine-labs/coffeine/branch/main/graph/badge.svg) -->
 
 ## Summary
