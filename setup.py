@@ -35,6 +35,7 @@ if __name__ == "__main__":
           url=URL,
           download_url=DOWNLOAD_URL,
           long_description=open('README.md').read(),
+          long_description_content_type='text/markdown',
           python_requires=">=3",
           install_requires=[
               'numpy>=1.18.1',
