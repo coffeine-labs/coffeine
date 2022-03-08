@@ -80,7 +80,7 @@ def make_filter_bank_transformer(names, method='riemann',
     """
     # put defaults here for projection and vectorization step
     projection_defaults = {
-        'riemann': dict(scale=1, n_compo='full', reg=1.e-05),
+        'riemann': dict(scale='auto', n_compo='full', reg=1.e-05),
         'lw_riemann': dict(shrink=1),
         'diag': dict(),
         'log_diag': dict(),
