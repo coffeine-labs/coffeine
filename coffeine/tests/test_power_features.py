@@ -10,6 +10,7 @@ data_dir = os.path.join(data_path, 'MEG', 'sample')
 raw_fname = os.path.join(data_dir, 'sample_audvis_raw.fif')
 
 frequency_bands = {'alpha': (8.0, 15.0), 'beta': (15.0, 30.0)}
+frequency_bands2 = {'theta': (4.0, 8.0), 'beta': (15.0, 30.0)}
 
 
 def test_compute_features_raw():
@@ -78,3 +79,19 @@ def test_compute_features_epochs():
             (n_fb * n_channels, n_fb * n_channels))
     assert (computed_features['cospectral_covs'].shape[1:] ==
             (n_channels, n_channels))
+
+
+@pytest.mark.parametrize('frequency_bands',
+                         [None, frequency_bands, frequency_bands2])
+def test_compute_features_covs_freq_band_defaults(frequency_bands):
+    raw = mne.io.read_raw_fif(raw_fname, verbose=False)
+    raw = raw.copy().crop(0, 200).pick(
+        [0, 1, 330, 331, 332]  # take some MEG and EEG
+    )
+    raw.info.normalize_proj()
+    computed_features, _ = compute_features(
+        raw, features=['covs'], frequency_bands=frequency_bands)
+
+    n_bands = computed_features['covs'].shape[0]
+    assert n_bands == 1 if frequency_bands is None \
+        else n_bands == len(frequency_bands)

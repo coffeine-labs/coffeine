@@ -120,9 +120,8 @@ def compute_features(
         'psds', 'covs', 'cross_frequency_covs', 'cross_frequency_corrs',
         'cospectral_covs')
 
-    frequency_bands_ = {'alpha': (8.0, 12.0)}
-    if frequency_bands is not None:
-        frequency_bands_.update(frequency_bands)
+    frequency_bands_ = {'alpha': (8.0, 12.0)} \
+        if frequency_bands is None else frequency_bands
     computed_features = {}
 
     if isinstance(inst, BaseRaw):
