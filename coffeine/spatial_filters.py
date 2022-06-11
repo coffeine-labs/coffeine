@@ -1,5 +1,3 @@
-import copy as cp
-
 import numpy as np
 import pandas as pd
 from mne import EvokedArray, Info
