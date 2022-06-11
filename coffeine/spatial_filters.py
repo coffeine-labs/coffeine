@@ -1,5 +1,3 @@
-import copy as cp
-
 import numpy as np
 import pandas as pd
 from mne import EvokedArray
@@ -169,8 +167,8 @@ class ProjSPoCSpace(BaseEstimator, TransformerMixin):
         pattern = self.pattern_
 
         # set sampling frequency to have 1 component per time point
-        info = cp.deepcopy(info)
-        info['sfreq'] = 1.
+        with info._unlock():
+            info['sfreq'] = 1.
         norm_pattern = pattern / np.linalg.norm(pattern, axis=1)[:, None]
         pattern_array = EvokedArray(norm_pattern.T, info, tmin=0)
         return pattern_array.plot_topomap(
@@ -197,8 +195,8 @@ class ProjSPoCSpace(BaseEstimator, TransformerMixin):
         filter_ = self.filter_
 
         # set sampling frequency to have 1 component per time point
-        info = cp.deepcopy(info)
-        info['sfreq'] = 1.
+        with info._unlock():
+            info['sfreq'] = 1.
         filter_array = EvokedArray(filter_, info, tmin=0)
         return filter_array.plot_topomap(
             times=components, ch_type=ch_type, vmin=vmin,
