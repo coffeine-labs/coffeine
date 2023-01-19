@@ -162,9 +162,11 @@ def compute_features(
                 f"The `features` ('{feature}') you specified is unknown.")
 
     if 'psds' in features:
-        psds_clean, freqs = mne.time_frequency.psd_welch(
-                epochs_clean, fmin=fmin, fmax=fmax, n_fft=n_fft,
-                n_overlap=n_overlap, average='mean', picks=None)
+        psds_clean = epochs_clean.compute_psd(method='welch', fmin=fmin,
+                                              fmax=fmax, n_fft=n_fft,
+                                              n_overlap=n_overlap,
+                                              average='mean', picks=None)
+        freqs = psds_clean.freqs
         psds = trim_mean(psds_clean, 0.25, axis=0)
         computed_features['psds'] = psds
         res['freqs'] = freqs
