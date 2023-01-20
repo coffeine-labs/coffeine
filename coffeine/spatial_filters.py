@@ -157,9 +157,9 @@ class ProjSPoCSpace(BaseEstimator, TransformerMixin):
                       vmin=None, vmax=None, cmap='RdBu_r', sensors=True,
                       colorbar=True, scalings=None, units='a.u.', res=64,
                       size=1, cbar_fmt='%3.1f', name_format='CSP%01d',
-                      show=True, show_names=False, title=None, mask=None,
+                      show=True, show_names=False, mask=None,
                       mask_params=None, outlines='head', contours=6,
-                      image_interp='bilinear', average=None,
+                      image_interp='linear', average=None,
                       axes=None):
 
         if components is None:
@@ -173,11 +173,11 @@ class ProjSPoCSpace(BaseEstimator, TransformerMixin):
         pattern_array = EvokedArray(norm_pattern.T, info, tmin=0)
         return pattern_array.plot_topomap(
             times=components, ch_type=ch_type,
-            vmin=vmin, vmax=vmax, cmap=cmap, colorbar=colorbar, res=res,
+            vlim=(vmin, vmax), cmap=cmap, colorbar=colorbar, res=res,
             cbar_fmt=cbar_fmt, sensors=sensors,
             scalings=scalings, units=units, time_unit='s',
             time_format=name_format, size=size, show_names=show_names,
-            title=title, mask_params=mask_params, mask=mask, outlines=outlines,
+            mask_params=mask_params, mask=mask, outlines=outlines,
             contours=contours, image_interp=image_interp, show=show,
             average=average, axes=axes)
 
@@ -186,9 +186,9 @@ class ProjSPoCSpace(BaseEstimator, TransformerMixin):
                      vmin=None, vmax=None, cmap='RdBu_r', sensors=True,
                      colorbar=True, scalings=None, units='a.u.', res=64,
                      size=1, cbar_fmt='%3.1f', name_format='CSP%01d',
-                     show=True, show_names=False, title=None, mask=None,
+                     show=True, show_names=False, mask=None,
                      mask_params=None, outlines='head', contours=6,
-                     image_interp='bilinear', average=None, axes=None):
+                     image_interp='linear', average=None, axes=None):
 
         if components is None:
             components = np.arange(self.n_compo)
@@ -199,11 +199,11 @@ class ProjSPoCSpace(BaseEstimator, TransformerMixin):
             info['sfreq'] = 1.
         filter_array = EvokedArray(filter_, info, tmin=0)
         return filter_array.plot_topomap(
-            times=components, ch_type=ch_type, vmin=vmin,
-            vmax=vmax, cmap=cmap, colorbar=colorbar, res=res,
+            times=components, ch_type=ch_type, vlim=(vmin, vmax),
+            cmap=cmap, colorbar=colorbar, res=res,
             cbar_fmt=cbar_fmt, sensors=sensors, scalings=scalings, units=units,
             time_unit='s', time_format=name_format, size=size,
-            show_names=show_names, title=title, mask_params=mask_params,
+            show_names=show_names, mask_params=mask_params,
             mask=mask, outlines=outlines, contours=contours,
             image_interp=image_interp, show=show, average=average,
             axes=axes)
