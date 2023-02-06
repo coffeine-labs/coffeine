@@ -159,7 +159,7 @@ class ProjSPoCSpace(BaseEstimator, TransformerMixin):
                       size=1, cbar_fmt='%3.1f', name_format='CSP%01d',
                       show=True, show_names=False, mask=None,
                       mask_params=None, outlines='head', contours=6,
-                      image_interp='linear', average=None,
+                      image_interp='cubic', average=None,
                       axes=None):
 
         if components is None:
@@ -183,12 +183,12 @@ class ProjSPoCSpace(BaseEstimator, TransformerMixin):
 
     def plot_filters(self, info, components=None,
                      ch_type=None,
-                     vmin=None, vmax=None, cmap='RdBu_r', sensors=True,
+                     vlim=(None, None), cmap='RdBu_r', sensors=True,
                      colorbar=True, scalings=None, units='a.u.', res=64,
                      size=1, cbar_fmt='%3.1f', name_format='CSP%01d',
                      show=True, show_names=False, mask=None,
                      mask_params=None, outlines='head', contours=6,
-                     image_interp='linear', average=None, axes=None):
+                     image_interp='cubic', average=None, axes=None):
 
         if components is None:
             components = np.arange(self.n_compo)
@@ -199,7 +199,7 @@ class ProjSPoCSpace(BaseEstimator, TransformerMixin):
             info['sfreq'] = 1.
         filter_array = EvokedArray(filter_, info, tmin=0)
         return filter_array.plot_topomap(
-            times=components, ch_type=ch_type, vlim=(vmin, vmax),
+            times=components, ch_type=ch_type, vlim=vlim,
             cmap=cmap, colorbar=colorbar, res=res,
             cbar_fmt=cbar_fmt, sensors=sensors, scalings=scalings, units=units,
             time_unit='s', time_format=name_format, size=size,

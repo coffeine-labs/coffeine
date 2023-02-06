@@ -162,14 +162,13 @@ def compute_features(
                 f"The `features` ('{feature}') you specified is unknown.")
 
     if 'psds' in features:
-        psds_clean = epochs_clean.compute_psd(method='welch', fmin=fmin,
-                                              fmax=fmax, n_fft=n_fft,
-                                              n_overlap=n_overlap,
-                                              average='mean', picks=None)
-        freqs = psds_clean.freqs
+        spectrum = epochs_clean.compute_psd(
+                method="welch", fmin=fmin, fmax=fmax, n_fft=n_fft,
+                n_overlap=n_overlap, average='mean', picks=None)
+        psds_clean = spectrum.get_data()
         psds = trim_mean(psds_clean, 0.25, axis=0)
         computed_features['psds'] = psds
-        res['freqs'] = freqs
+        res['freqs'] = spectrum.freqs
 
     if ('cross_frequency_covs' in features or
             'cross_frequency_corrs' in features):
