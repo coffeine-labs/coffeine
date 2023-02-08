@@ -9,7 +9,7 @@ def _check_data(X):
     out = None
     if X.ndim == 3:
         out = X
-    if X.values.dtype == 'object':
+    elif X.values.dtype == 'object':
         # first remove unnecessary dimensions,
         # then stack to 3d data
         values = X.values
