@@ -1,4 +1,5 @@
-# Authors: David Sabbagh <david@sabbagh.fr> Denis Engemann <denis.engemann@gmail.com>
+# Authors: David Sabbagh <david@sabbagh.fr>
+#          Denis Engemann <denis.engemann@gmail.com>
 #
 # License: MIT
 """M/EEG power regression pipelines in Python"""
