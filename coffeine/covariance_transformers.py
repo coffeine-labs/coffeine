@@ -23,7 +23,7 @@ def _check_data(X):
 
 
 class Riemann(BaseEstimator, TransformerMixin):
-    def __init__(self, metric='wasserstein', return_data_frame=True):
+    def __init__(self, metric='riemann', return_data_frame=True):
         self.metric = metric
         self.return_data_frame = return_data_frame
 

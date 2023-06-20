@@ -54,7 +54,7 @@ def test_pipelines(toy_data):
     regressor = make_filter_bank_classifier(
         names=frequency_bands.keys(),
         method='riemann',
-        vectorization_params=dict(metric='wasserstein'),
+        vectorization_params=dict(metric='riemann'),
         categorical_interaction="drug")
     y_bin = np.sign(y - np.mean(y))
     regressor.fit(X_df, y_bin)
