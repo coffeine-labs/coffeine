@@ -1,3 +1,4 @@
 include LICENSE
 recursive-include coffeine *.py
+recursive-include notebooks *.ipynb
 exclude requirements.txt
