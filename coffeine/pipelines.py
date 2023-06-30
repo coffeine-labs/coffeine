@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from coffeine.covariance_transformers import (
     Diag,
     LogDiag,
@@ -14,16 +15,87 @@ from coffeine.spatial_filters import (
     ProjRandomSpace,
     ProjSPoCSpace)
 
+from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.compose import make_column_transformer
-from sklearn.pipeline import make_pipeline
+from sklearn.pipeline import make_pipeline, Pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import RidgeCV, LogisticRegression
 
 
-def make_filter_bank_transformer(names, method='riemann',
-                                 projection_params=None,
-                                 vectorization_params=None,
-                                 categorical_interaction=None):
+class GaussianKernel(BaseEstimator, TransformerMixin):
+    """Gaussian (squared exponential) Kernel.
+
+    Efficient computation of squared exponential kernel for
+    one column of covariances in a coffeine DataFrame.
+    """
+    def __init__(self, sigma=1.):
+        self.sigma = sigma
+
+    def fit(self, X, y=None):
+        """Prepare Kernel."""
+        if isinstance(X, pd.DataFrame):
+            X = X.values
+        self.X = X.astype(np.float64)
+        self.N = np.sum(self.X ** 2, axis=1)
+        return self
+
+    def transform(self, X, y=None):
+        """Compute Kernel."""
+        C = 1.
+        if isinstance(X, pd.DataFrame):
+            X = X.values
+
+        X_d = X.astype(np.float64)
+
+        # compute L2 norm across feature vectors in every subject
+        N = np.sum(X_d ** 2, axis=1)
+        C1 = self.N[None, :] + N[:, None]
+        C2 = (X_d.reshape(X_d.shape[0], -1) @
+              self.X.reshape(self.X.shape[0], -1).T)
+        C = np.exp(-(C1 - 2 * C2) / (self.sigma ** 2))
+
+        return C
+
+    def get_params(self, deep=True):
+        """Get parameters."""
+        return {"sigma": self.sigma}
+
+    def set_params(self, **parameters):
+        """Get parameters."""
+        for parameter, value in parameters.items():
+            setattr(self, parameter, value)
+        return self
+
+
+class KernelSum(BaseEstimator, TransformerMixin):
+    """Sum multiple Kernels with fixed equal weights.
+
+    Expects input from concatenated output of ColumnTransformer in
+    a filterbank pipeline.
+    """
+    def __init__(self):
+        pass
+
+    def fit(self, X, y=None):
+        self.n_train_ = len(X)
+        return self
+
+    def transform(self, X, y=None):
+        X_out = X
+        if X.shape not in ((len(X), self.n_train_), (len(X), len(X))):
+            X_out = X.reshape(len(X), -1, self.n_train_).sum(axis=1)
+        return X_out
+
+
+def make_filter_bank_transformer(
+        names,
+        method='riemann',
+        projection_params=None,
+        vectorization_params=None,
+        kernel=None,
+        combine_kernels=None,
+        categorical_interaction=None
+    ):
     """Generate pipeline for filterbank models.
 
     Prepare filter bank models as used in [1]_. These models take as input
@@ -65,6 +137,14 @@ def make_filter_bank_transformer(names, method='riemann',
         The parameters for the projection step.
     vectorization_params : dict | None
         The parameters for the vectorization step.
+    kernel : None | 'gaussian-sum' | tuple
+        The Kernel option for kernel regression. If 'gaussian-sum', a Gaussian Kernel will
+        be added per column and the results will be summed over frequencies.
+        If tuple, the first element should give a name, the second a sklearn pipeline object.
+    combine_kernels : None | 'sum' | sklearn.pipeline.Pipeline
+        If kernel is used and multiple columns are defined, this option determines
+        how a combined kernel is constructed. 'sum' adds the kernels with equal weights.
+        A custom pipeline pipeline can be passed to implement alternative rules.
     categorical_interaction : str
         The column in the input data frame containing a binary descriptor
         used to fit 2-way interaction effects.
@@ -116,11 +196,19 @@ def make_filter_bank_transformer(names, method='riemann',
     if vectorization_params is not None:
         vectorization_params_.update(**vectorization_params)
 
-    def _get_projector_vectorizer(projection, vectorization):
-        return [(make_pipeline(*
-                               [projection(**projection_params_),
-                                vectorization(**vectorization_params_)]),
-                 name) for name in names]
+    def _get_projector_vectorizer(projection, vectorization,  kernel=None):
+        out = list()
+        for name in names:
+            steps = [
+                projection(**projection_params_),
+                vectorization(**vectorization_params_)
+            ]
+            if kernel is not None:
+                kernel_name, kernel_estimator = kernel
+                steps.append(kernel_estimator())
+            pipeline = make_pipeline(*steps)
+            out.append((pipeline, name))
+        return out
 
     # setup pipelines (projection + vectorization step)
     steps = tuple()
@@ -141,9 +229,25 @@ def make_filter_bank_transformer(names, method='riemann',
     elif method == 'riemann_wasserstein':
         steps = (ProjIdentitySpace, RiemannSnp)
 
-    filter_bank_transformer = make_column_transformer(
-        *_get_projector_vectorizer(*steps), remainder='passthrough')
+    # add Kernel options
+    if isinstance(kernel, tuple):
+        if not (isinstance(kernel[0], str) and not
+                isinstance(kernel[1], (BaseEstimator, TransformerMixin))):
+            raise ValueError('Custom kernel must be a tuple of (name, estimator).')
+    elif kernel == 'gaussian':
+        kernel = (
+            'gaussiankernel', GaussianKernel
+        )
 
+    filter_bank_transformer = make_column_transformer(
+        *_get_projector_vectorizer(*steps, kernel=kernel), remainder='passthrough'
+    )
+
+    if combine_kernels is not None:
+        filter_bank_transformer = make_pipeline(
+            filter_bank_transformer,
+            KernelSum() if combine_kernels == 'sum' else combine_kernels
+        )
     if categorical_interaction is not None:
         filter_bank_transformer = ExpandFeatures(
             filter_bank_transformer, expander_column=categorical_interaction)
