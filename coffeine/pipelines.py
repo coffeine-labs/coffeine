@@ -137,10 +137,10 @@ def make_filter_bank_transformer(
         The parameters for the projection step.
     vectorization_params : dict | None
         The parameters for the vectorization step.
-    kernel : None | 'gaussian-sum' | tuple
-        The Kernel option for kernel regression. If 'gaussian-sum', a Gaussian Kernel will
+    kernel : None | 'gaussian' | sklearn.Pipeline
+        The Kernel option for kernel regression. If 'gaussian', a Gaussian Kernel will
         be added per column and the results will be summed over frequencies.
-        If tuple, the first element should give a name, the second a sklearn pipeline object.
+        If sklearn.pipeline.Pipeline is passed, it should return a meaningful kernel.
     combine_kernels : None | 'sum' | sklearn.pipeline.Pipeline
         If kernel is used and multiple columns are defined, this option determines
         how a combined kernel is constructed. 'sum' adds the kernels with equal weights.
@@ -230,10 +230,9 @@ def make_filter_bank_transformer(
         steps = (ProjIdentitySpace, RiemannSnp)
 
     # add Kernel options
-    if isinstance(kernel, tuple):
-        if not (isinstance(kernel[0], str) and not
-                isinstance(kernel[1], (BaseEstimator, TransformerMixin))):
-            raise ValueError('Custom kernel must be a tuple of (name, estimator).')
+    if (isinstance(kernel, Pipeline) and not
+            isinstance(kernel, (BaseEstimator, TransformerMixin))):
+        raise ValueError('Custom kernel must be an estimator and a transformer).')
     elif kernel == 'gaussian':
         kernel = (
             'gaussiankernel', GaussianKernel
