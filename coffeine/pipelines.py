@@ -94,8 +94,7 @@ def make_filter_bank_transformer(
         vectorization_params=None,
         kernel=None,
         combine_kernels=None,
-        categorical_interaction=None
-    ):
+        categorical_interaction=None):
     """Generate pipeline for filterbank models.
 
     Prepare filter bank models as used in [1]_. These models take as input
@@ -138,13 +137,15 @@ def make_filter_bank_transformer(
     vectorization_params : dict | None
         The parameters for the vectorization step.
     kernel : None | 'gaussian' | sklearn.Pipeline
-        The Kernel option for kernel regression. If 'gaussian', a Gaussian Kernel will
-        be added per column and the results will be summed over frequencies.
-        If sklearn.pipeline.Pipeline is passed, it should return a meaningful kernel.
+        The Kernel option for kernel regression. If 'gaussian', a Gaussian Kernel
+        will be added per column and the results will be summed over frequencies.
+        If sklearn.pipeline.Pipeline is passed, it should return a meaningful
+        kernel.
     combine_kernels : None | 'sum' | sklearn.pipeline.Pipeline
         If kernel is used and multiple columns are defined, this option determines
-        how a combined kernel is constructed. 'sum' adds the kernels with equal weights.
-        A custom pipeline pipeline can be passed to implement alternative rules.
+        how a combined kernel is constructed. 'sum' adds the kernels with equal
+        weights. A custom pipeline pipeline can be passed to implement alternative
+        rules.
     categorical_interaction : str
         The column in the input data frame containing a binary descriptor
         used to fit 2-way interaction effects.
