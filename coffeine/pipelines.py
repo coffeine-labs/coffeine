@@ -237,6 +237,7 @@ def make_filter_bank_transformer(
         kernel = (
             'gaussiankernel', GaussianKernel
         )
+        combine_kernels = 'sum'
 
     filter_bank_transformer = make_column_transformer(
         *_get_projector_vectorizer(*steps, kernel=kernel), remainder='passthrough'
