@@ -8,7 +8,7 @@ from mne.io import BaseRaw
 from mne.epochs import BaseEpochs
 
 
-def _compute_covs_raw(raw, clean_events, frequency_bands, duration):
+def _compute_covs_raw(raw, clean_events, frequency_bands, duration, method):
     covs = list()
     for _, fb in frequency_bands.items():
         rf = raw.copy().load_data().filter(fb[0], fb[1])
@@ -55,10 +55,10 @@ def _compute_cospectral_covs(epochs, n_fft, n_overlap, fmin, fmax, fs):
     return cospectral_covs.transform(X).mean(axis=0).transpose((2, 0, 1))
 
 
-def get_frequency_bands(collection: str='ipeg',
-                        subset: Union[list, tuple, None]=None) -> dict:
+def get_frequency_bands(collection: str = 'ipeg',
+                        subset: Union[list, tuple, None] = None) -> dict:
     """Get pre-specified frequency bands based on the literature.
-    
+
     Next to sets of bands for defining filterbank models, the aggregate
     defined in the corresponding literature are provided.
     
@@ -66,17 +66,17 @@ def get_frequency_bands(collection: str='ipeg',
         The HCP-MEG[1] frequency band was historically based on the
         documentation of the MEG analysis from the HCP-500 MEG2 release:
         https://wiki.humanconnectome.org/display/PublicData/MEG+Data+FAQ
-        
+
         As frequencies below 1.5Hz were omitted the work presented in [2,3]
         also defined a 'low' band (0.1 - 1.5Hz) while retaining the the other
         frequencies.
-        
+ 
     .. note::
         The IPEG frequency bands were developed in [4].
 
     .. note::
         Additional band definitions can be added as per (pull) request.
-    
+
     Parameters
     ----------
     collection : {'ipeg', 'ipeg_aggregated', 'hcp', 'hcp_aggregated'}
@@ -84,12 +84,12 @@ def get_frequency_bands(collection: str='ipeg',
     subset : list-like
         A selection of valid keys to return a subset of frequency
         bands from a collection.
-    
+
     Returns
     -------
     frequency_bands : dict
         The band definitions.
-        
+    
     References
     ----------
     [1] Larson-Prior, L. J., R. Oostenveld, S. Della Penna, G. Michalareas,
@@ -113,7 +113,7 @@ def get_frequency_bands(collection: str='ipeg',
     """
     frequency_bands = dict()
     if collection == 'ipeg':
-        frequency_bands.update({ 
+        frequency_bands.update({
             "delta": (1.5, 6.0),
             "theta": (6.0, 8.5),
             "alpha1": (8.5, 10.5),
@@ -122,7 +122,7 @@ def get_frequency_bands(collection: str='ipeg',
             "beta2": (18.5, 21.0),
             "beta3": (21.0, 30.0),
             "gamma": (30.0, 40.0),
-        }) # total: 1.5-30; dominant: 6-12.5
+        })  # total: 1.5-30; dominant: 6-12.5
     if collection == 'ipeg_aggregated':
         frequency_bands.update({
             'total': (1.5, 30),
@@ -131,7 +131,7 @@ def get_frequency_bands(collection: str='ipeg',
     elif collection == 'hcp':
         # https://www.humanconnectome.org/storage/app/media/documentation/
         # s500/hcps500meg2releasereferencemanual.pdf
-        frequency_bands.update({ 
+        frequency_bands.update({    
             'low': (0.1, 1.5),  # added later in [2,3].
             'delta': (1.5, 4.0),
             'theta': (4.0, 8.0),
@@ -141,9 +141,9 @@ def get_frequency_bands(collection: str='ipeg',
             'gamma_low': (35.0, 50.0),
             'gamma_mid': (50.0, 76.0),
             'gamma_high': (76.0, 120.0)
-        })      
+        })
     elif collection == 'hcp_aggregated':
-        frequency_bands.update({ 
+        frequency_bands.update({
             'wide_band': (1.5, 150.0)
         })
     if subset is not None:
@@ -194,7 +194,7 @@ def compute_coffeine(
         methods_params: Union[None, dict] = None
         ) -> pd.DataFrame:
     """Compute & spectral features as SPD matrices in a Data Frame.
-    
+
     Parameters
     ----------
     inst : mne.io.Raw | mne.Epochs or list-like
@@ -211,9 +211,8 @@ def compute_coffeine(
     -------
     C_df : pd.DataFrame
         The coffeine DataFrame with columns filled with object arrays of
-        covariances. 
+        covariances.
     """
-    _insts = (mne.io.BaseRaw, mne.BaseEpochs)
     instance_list = list()
     if isinstance(inst, mne.io.BaseRaw):
         instance_list.append(inst)
@@ -238,7 +237,7 @@ def compute_coffeine(
     elif isinstance(frequencies, dict):
         frequencies_ = frequencies
     else:
-        raise NotImplemented(
+        raise NotImplementedError(
             'Currently, only collection names or fully-spelled band ranges are'
             ' supported as frequency definitions.'
         )
