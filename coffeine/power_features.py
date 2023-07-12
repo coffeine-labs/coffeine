@@ -14,21 +14,21 @@ def _compute_covs_raw(raw, clean_events, frequency_bands, duration):
             rf, clean_events, event_id=3000, tmin=0, tmax=duration,
             proj=True, baseline=None, reject=None, preload=False, decim=1,
             picks=None)
-        cov = mne.compute_covariance(ec, method='oas', rank=None)
+        cov = mne.compute_covariance(ec, method=method, rank=None)
         covs.append(cov.data)
     return np.array(covs)
 
 
-def _compute_covs_epochs(epochs, frequency_bands):
+def _compute_covs_epochs(epochs, frequency_bands, method):
     covs = list()
     for _, fb in frequency_bands.items():
         ec = epochs.copy().load_data().filter(fb[0], fb[1])
-        cov = mne.compute_covariance(ec, method='oas', rank=None)
+        cov = mne.compute_covariance(ec, method=method, rank=None)
         covs.append(cov.data)
     return np.array(covs)
 
 
-def _compute_cross_frequency_covs(epochs, frequency_bands):
+def _compute_cross_frequency_covs(epochs, frequency_bands, method):
     epochs_frequency_bands = []
     for ii, (fbname, fb) in enumerate(frequency_bands.items()):
         ef = epochs.copy().load_data().filter(fb[0], fb[1])
@@ -40,7 +40,7 @@ def _compute_cross_frequency_covs(epochs, frequency_bands):
     for e in epochs_frequency_bands[1:]:
         epochs_final.add_channels([e], force_update_info=True)
     n_chan = epochs_final.info['nchan']
-    cov = mne.compute_covariance(epochs_final, method='oas', rank=None)
+    cov = mne.compute_covariance(epochs_final, method=method, rank=None)
     corr = np.corrcoef(
         epochs_final.get_data().transpose((1, 0, 2)).reshape(n_chan, -1))
     return cov.data, corr
@@ -65,6 +65,7 @@ def compute_features(
         fmax=30,
         frequency_bands=None,
         clean_func=lambda x: x,
+        cov_method='oas',
         n_jobs=1):
     """Compute features from raw data or clean epochs.
 
@@ -106,6 +107,10 @@ def compute_features(
         If nothing is provided, defaults to {'alpha': (8.0, 12.0)}.
     clean_func : lambda function
         If nothing is provided, defaults to lambda x: x.
+    cov_method : str (default 'oas')
+        The covariance estimator to be used. Ignored for feature types not
+        not related to covariances. Must be a method accepted by MNE's
+        covariance functions. 
     n_jobs : int
         If nothing is provided, defaults to 1.
 
@@ -136,13 +141,14 @@ def compute_features(
         clean_events = events[epochs_clean.selection]
         if 'covs' in features:
             covs = _compute_covs_raw(inst, clean_events, frequency_bands_,
-                                     duration)
+                                     duration, method=cov_method)
             computed_features['covs'] = covs
 
     elif isinstance(inst, BaseEpochs):
         epochs_clean = clean_func(inst)
         if 'covs' in features:
-            covs = _compute_covs_epochs(epochs_clean, frequency_bands_)
+            covs = _compute_covs_epochs(epochs_clean, frequency_bands_,
+                                        method=cov_method)
             computed_features['covs'] = covs
     else:
         raise ValueError('Inst must be raw or epochs.')
@@ -163,8 +169,8 @@ def compute_features(
 
     if 'psds' in features:
         spectrum = epochs_clean.compute_psd(
-                method="welch", fmin=fmin, fmax=fmax, n_fft=n_fft,
-                n_overlap=n_overlap, average='mean', picks=None)
+            method="welch", fmin=fmin, fmax=fmax, n_fft=n_fft,
+            n_overlap=n_overlap, average='mean', picks=None)
         psds_clean = spectrum.get_data()
         psds = trim_mean(psds_clean, 0.25, axis=0)
         computed_features['psds'] = psds
@@ -174,14 +180,15 @@ def compute_features(
             'cross_frequency_corrs' in features):
         (cross_frequency_covs,
             cross_frequency_corrs) = _compute_cross_frequency_covs(
-            epochs_clean, frequency_bands_)
+            epochs_clean, frequency_bands_, method=cov_method)
         computed_features['cross_frequency_covs'] = cross_frequency_covs
         computed_features['cross_frequency_corrs'] = cross_frequency_corrs
 
     if 'cospectral_covs' in features:
         cospectral_covs = _compute_cospectral_covs(epochs_clean, n_fft,
                                                    n_overlap,
-                                                   fmin, fmax, fs)
+                                                   fmin, fmax, fs,
+                                                   method=cov_method)
         computed_features['cospectral_covs'] = cospectral_covs
 
     return computed_features, res
