@@ -48,7 +48,8 @@ def _compute_cross_frequency_covs(epochs, frequency_bands, method):
     return cov.data, corr
 
 
-def _compute_cospectral_covs(epochs, n_fft, n_overlap, fmin, fmax, fs):
+def _compute_cospectral_covs(epochs, n_fft, n_overlap, fmin, fmax, fs,
+                             method):
     X = epochs.get_data()
     cospectral_covs = CospCovariances(window=n_fft, overlap=n_overlap/n_fft,
                                       fmin=fmin, fmax=fmax, fs=fs)
