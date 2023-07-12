@@ -61,7 +61,7 @@ def get_frequency_bands(collection: str = 'ipeg',
 
     Next to sets of bands for defining filterbank models, the aggregate
     defined in the corresponding literature are provided.
-    
+
     .. note::
         The HCP-MEG[1] frequency band was historically based on the
         documentation of the MEG analysis from the HCP-500 MEG2 release:
@@ -70,7 +70,7 @@ def get_frequency_bands(collection: str = 'ipeg',
         As frequencies below 1.5Hz were omitted the work presented in [2,3]
         also defined a 'low' band (0.1 - 1.5Hz) while retaining the the other
         frequencies.
- 
+
     .. note::
         The IPEG frequency bands were developed in [4].
 
@@ -89,7 +89,7 @@ def get_frequency_bands(collection: str = 'ipeg',
     -------
     frequency_bands : dict
         The band definitions.
-    
+
     References
     ----------
     [1] Larson-Prior, L. J., R. Oostenveld, S. Della Penna, G. Michalareas,
@@ -131,7 +131,7 @@ def get_frequency_bands(collection: str = 'ipeg',
     elif collection == 'hcp':
         # https://www.humanconnectome.org/storage/app/media/documentation/
         # s500/hcps500meg2releasereferencemanual.pdf
-        frequency_bands.update({    
+        frequency_bands.update({
             'low': (0.1, 1.5),  # added later in [2,3].
             'delta': (1.5, 4.0),
             'theta': (4.0, 8.0),
@@ -320,7 +320,7 @@ def compute_features(
     cov_method : str (default 'oas')
         The covariance estimator to be used. Ignored for feature types not
         not related to covariances. Must be a method accepted by MNE's
-        covariance functions. 
+        covariance functions.
     n_jobs : int
         If nothing is provided, defaults to 1.
 
