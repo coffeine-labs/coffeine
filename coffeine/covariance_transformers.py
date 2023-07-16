@@ -161,12 +161,12 @@ class Snp(TransformerMixin):
         n_mat, n, _ = X.shape
         output = np.zeros((n_mat, n * self.rank))
         for j, C in enumerate(X):
-            Y = to_quotient(C, self.rank)
-            output[j] = logarithm_(Y, self.Y_ref_).ravel()
+            Y = _to_quotient(C, self.rank)
+            output[j] = _logarithm(Y, self.Y_ref_).ravel()
         return output
 
 
-def to_quotient(C, rank):
+def _to_quotient(C, rank):
     d, U = np.linalg.eigh(C)
     U = U[:, -rank:]
     d = d[-rank:]
@@ -174,7 +174,7 @@ def to_quotient(C, rank):
     return Y
 
 
-def logarithm_(Y, Y_ref):
+def _logarithm(Y, Y_ref):
     prod = np.dot(Y_ref.T, Y)
     U, D, V = np.linalg.svd(prod, full_matrices=False)
     Q = np.dot(U, V).T

@@ -5,13 +5,13 @@ from scipy.linalg import eigh, pinv
 from sklearn.base import BaseEstimator, TransformerMixin
 
 
-def shrink(cov, alpha):
+def _shrink(cov, alpha):
     n = len(cov)
     shrink_cov = (1 - alpha) * cov + alpha * np.trace(cov) * np.eye(n) / n
     return shrink_cov
 
 
-def fstd(y):
+def _fstd(y):
     y = y.astype(np.float32)
     y -= y.mean(axis=0)
     y /= y.std(axis=0)
@@ -91,7 +91,7 @@ class ProjLWSpace(BaseEstimator, TransformerMixin):
         n_sub, p, _ = X.shape
         Xout = np.empty((n_sub, p, p))
         for sub in range(n_sub):
-            Xout[sub] = shrink(X[sub], self.shrink)
+            Xout[sub] = _shrink(X[sub], self.shrink)
         return pd.DataFrame({'cov': list(Xout)})  # (sub , compo, compo)
 
 
@@ -127,11 +127,11 @@ class ProjSPoCSpace(BaseEstimator, TransformerMixin):
     def fit(self, X, y=None):
         X = _check_X_df(X)
         self.n_compo = len(X[0]) if self.n_compo == 'full' else self.n_compo
-        target = fstd(y)
+        target = _fstd(y)
         self.scale_ = _get_scale(X, self.scale)
         C = X.mean(axis=0)
         Cz = np.mean(X * target[:, None, None], axis=0)
-        C = shrink(C, self.shrink)
+        C = _shrink(C, self.shrink)
         eigvals, eigvecs = eigh(Cz, C)
         ix = np.argsort(np.abs(eigvals))[::-1]
         evecs = eigvecs[:, ix]
