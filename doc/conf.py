@@ -44,10 +44,10 @@ templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 autosummary_generate = True
+numpydoc_show_class_members = False 
 
 # -- nbsphinx configuration --------------------------------------------------
 
-nbsphinx_prompt_width = 0
 nbsphinx_prolog = """
 .. raw:: html
 

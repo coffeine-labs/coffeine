@@ -152,7 +152,7 @@ def make_filter_bank_transformer(
 
     References
     ----------
-    [1] D. Sabbagh, P. Ablin, G. Varoquaux, A. Gramfort, and D.A. Engemann.
+    .. [1] D. Sabbagh, P. Ablin, G. Varoquaux, A. Gramfort, and D.A. Engemann.
         Predictive regression modeling with MEG/EEG: from source power
         to signals and cognitive states.
         *NeuroImage*, page 116893,2020. ISSN 1053-8119.
@@ -317,12 +317,11 @@ def make_filter_bank_regressor(names, method='riemann',
 
     References
     ----------
-    [1] D. Sabbagh, P. Ablin, G. Varoquaux, A. Gramfort, and D.A. Engemann.
+    .. [1] D. Sabbagh, P. Ablin, G. Varoquaux, A. Gramfort, and D.A. Engemann.
         Predictive regression modeling with MEG/EEG: from source power
         to signals and cognitive states.
         *NeuroImage*, page 116893,2020. ISSN 1053-8119.
         https://doi.org/10.1016/j.neuroimage.2020.116893
-
     """
     filter_bank_transformer = make_filter_bank_transformer(
         names=names, method=method, projection_params=projection_params,
@@ -405,7 +404,7 @@ def make_filter_bank_classifier(names, method='riemann',
 
     References
     ----------
-    [1] D. Sabbagh, P. Ablin, G. Varoquaux, A. Gramfort, and D.A. Engemann.
+    .. [1] D. Sabbagh, P. Ablin, G. Varoquaux, A. Gramfort, and D.A. Engemann.
         Predictive regression modeling with MEG/EEG: from source power
         to signals and cognitive states.
         *NeuroImage*, page 116893,2020. ISSN 1053-8119.
@@ -426,10 +425,10 @@ def make_filter_bank_classifier(names, method='riemann',
     if estimator_ is None:
         estimator_ = LogisticRegression(solver='liblinear')
 
-    filter_bank_regressor = make_pipeline(
+    filter_bank_classifier = make_pipeline(
         filter_bank_transformer,
         scaling_,
         estimator_
     )
 
-    return filter_bank_regressor
+    return filter_bank_classifier
