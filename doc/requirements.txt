@@ -1,0 +1,5 @@
+sphinx
+nbsphinx
+numpydoc
+memory_profiler
+pydata-sphinx-theme
