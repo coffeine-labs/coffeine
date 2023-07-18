@@ -2,3 +2,17 @@ include LICENSE
 recursive-include coffeine *.py
 recursive-include notebooks *.ipynb
 exclude requirements.txt
+doc/generated/coffeine.spatial_filters.ProjRandomSpace.rst
+doc/generated/coffeine.spatial_filters.ProjSPoCSpace.rst
+doc/index.ipynb
+doc/make.bat
+doc/requirements.txt
+doc/tutorials.ipynb
+doc/tutorials/filterbank_classification_bci.ipynb
+doc/tutorials/filterbank_kernel_classification_bci.ipynb
+recursive-include doc *.bat
+recursive-include doc *.ipynb
+recursive-include doc *.py
+recursive-include doc *.rst
+recursive-include doc *.txt
+recursive-include doc Makefile
