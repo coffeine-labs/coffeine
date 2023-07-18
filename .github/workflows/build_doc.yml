@@ -40,7 +40,7 @@ jobs:
       uses: rickstaa/sphinx-action@master
       with:
         docs-folder: "doc/"
-    - uses: actions/upload-artifact@v1
+    - uses: actions/upload-artifact@v2
       with:
         name: Documentation
         path: doc/build/html/
