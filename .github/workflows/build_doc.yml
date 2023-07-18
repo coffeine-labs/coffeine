@@ -27,12 +27,14 @@ jobs:
         python -m pip install --user --upgrade --progress-bar off -r requirements.txt
         python -m pip install --user --upgrade --progress-bar off -r doc/requirements.txt
         python -m pip install --user --upgrade --progress-bar off ipython "https://api.github.com/repos/sphinx-gallery/sphinx-gallery/zipball/master" memory_profiler
+        python -m pip install --user --upgrade pandoc
         python -m pip install --user -e .
     # Look at what we have and fail early if there is some library conflict
     - name: Check installation
       run: |
         which python
         python -c "import coffeine"
+        python -c "import pandoc"
     # Build docs
     - name: Generate HTML docs
       uses: rickstaa/sphinx-action@master
