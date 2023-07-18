@@ -152,7 +152,7 @@ class Snp(TransformerMixin):
     def fit(self, X, y=None, ref=None):
         if ref is None:
             ref = np.mean(X, axis=0)
-        Y = to_quotient(ref, self.rank)
+        Y = _to_quotient(ref, self.rank)
         self.reference_ = ref
         self.Y_ref_ = Y
         return self

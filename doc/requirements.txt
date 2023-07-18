@@ -3,3 +3,4 @@ nbsphinx
 numpydoc
 memory_profiler
 pydata-sphinx-theme
+sphinx_copybutton
