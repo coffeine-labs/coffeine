@@ -25,7 +25,7 @@ jobs:
       run: |
         python -m pip install --user --upgrade --progress-bar off pip
         python -m pip install --user --upgrade --progress-bar off -r requirements.txt
-        python -m pip install --user --upgrade --progress-bar off -r docs/requirements.txt
+        python -m pip install --user --upgrade --progress-bar off -r doc/requirements.txt
         python -m pip install --user --upgrade --progress-bar off ipython "https://api.github.com/repos/sphinx-gallery/sphinx-gallery/zipball/master" memory_profiler
         python -m pip install --user -e .
     # Look at what we have and fail early if there is some library conflict
@@ -37,8 +37,8 @@ jobs:
     - name: Generate HTML docs
       uses: rickstaa/sphinx-action@master
       with:
-        docs-folder: "docs/"
+        docs-folder: "doc/"
     - uses: actions/upload-artifact@v1
       with:
         name: Documentation
-        path: docs/build/html/
+        path: doc/build/html/
