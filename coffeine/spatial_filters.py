@@ -51,7 +51,7 @@ class ProjIdentitySpace(BaseEstimator, TransformerMixin):
         ----------
         X : {pd.DataFrame} of shape (n_samples, n_covariances)
             Training vector, where `n_samples` is the number of samples and
-            `n_features` is the number of covariances (inside the columns).
+            `n_covariances` is the number of covariances (inside the columns).
         y : array-like of shape (n_samples,)
             Target vector relative to X.
         """
@@ -64,7 +64,7 @@ class ProjIdentitySpace(BaseEstimator, TransformerMixin):
         ----------
         X : {pd.DataFrame} of shape (n_samples, n_covariances)
             Training vector, where `n_samples` is the number of samples and
-            `n_features` is the number of covariances (inside the columns).
+            `n_covariances` is the number of covariances (inside the columns).
         """
         X = _check_X_df(X)
         Xout = np.array(list(np.squeeze(X))).astype(float)
