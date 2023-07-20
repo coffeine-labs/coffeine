@@ -23,6 +23,7 @@ def _check_data(X):
             out = out[np.newaxis, :, :]
     return out
 
+
 class NaiveVec(BaseEstimator, TransformerMixin):
     """Vectorize SPD matrix by flattening the upper triangle.
 

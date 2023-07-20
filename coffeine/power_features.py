@@ -160,7 +160,7 @@ def make_coffeine_data_frame(
         C: np.ndarray,
         names: Union[dict[str, tuple[float, float]],
         list[str], tuple[str], None] = None
-    ) -> pd.DataFrame:
+        ) -> pd.DataFrame:
     """Put covariances in coffeine Data Frame.
 
     Parameters
@@ -278,7 +278,7 @@ def compute_features(
         fs: float = 63.0,
         fmin: float = 0.,
         fmax: float = 30.,
-        frequency_bands: Union[dict[str, tuple[float,float]], None] = None,
+        frequency_bands: Union[dict[str, tuple[float, float]], None] = None,
         clean_func: callable = lambda x: x,
         cov_method: str = 'oas',
         n_jobs=1) -> tuple[dict, dict]:

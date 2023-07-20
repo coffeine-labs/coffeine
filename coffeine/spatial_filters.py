@@ -33,6 +33,7 @@ def _check_X_df(X):
             X = X[np.newaxis, :, :]
     return X
 
+
 class ProjIdentitySpace(BaseEstimator, TransformerMixin):
     """Apply identy projection to SPD matrix.
 
