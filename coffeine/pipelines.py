@@ -121,8 +121,8 @@ class KernelSum(BaseEstimator, TransformerMixin):
         return self
 
     def transform(self,
-            X: np.ndarray,
-            y: Union[list[int, float], np.ndarray, None] = None):
+                  X: np.ndarray,
+                  y: Union[list[int, float], np.ndarray, None] = None):
         """Sum various kernels returned by column transformer.
 
         Parameters

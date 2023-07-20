@@ -264,7 +264,7 @@ def compute_coffeine(
         )
         C.append(features['covs'])
     C = np.array(C)
-    C_df = make_coffeine_df(C=C, names=frequencies_)
+    C_df = make_coffeine_data_frame(C=C, names=frequencies_)
     return C_df, feature_info
 
 
@@ -281,7 +281,7 @@ def compute_features(
         frequency_bands: Union[dict[str, tuple[float, float]], None] = None,
         clean_func: callable = lambda x: x,
         cov_method: str = 'oas',
-        n_jobs=1) -> tuple[dict, dict]:
+        ) -> tuple[dict, dict]:
     """Compute features from raw data or clean epochs.
 
     Parameters
@@ -326,8 +326,6 @@ def compute_features(
         The covariance estimator to be used. Ignored for feature types not
         not related to covariances. Must be a method accepted by MNE's
         covariance functions.
-    n_jobs : int
-        If nothing is provided, defaults to 1.
 
     Returns
     -------
