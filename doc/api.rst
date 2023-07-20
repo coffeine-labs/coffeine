@@ -37,7 +37,7 @@ Computing Power-Spectral Features
     :template: function.rst
 
     get_frequency_bands
-    make_coffeine_df
+    make_coffeine_data_frame
     compute_coffeine
     compute_features
 
