@@ -3,7 +3,7 @@ import pytest
 import mne
 
 
-from coffeine.power_features import compute_features
+from coffeine.power_features import compute_features, get_frequency_bands
 
 data_path = mne.datasets.sample.data_path()
 data_dir = os.path.join(data_path, 'MEG', 'sample')
@@ -95,3 +95,52 @@ def test_compute_features_covs_freq_band_defaults(frequency_bands):
     n_bands = computed_features['covs'].shape[0]
     assert n_bands == 1 if frequency_bands is None \
         else n_bands == len(frequency_bands)
+
+
+def test_get_frequency_bands():
+    fbands_ipeg = get_frequency_bands(collection='ipeg')
+    assert fbands_ipeg == {
+        'delta': (1.5, 6.0),
+        'theta': (6.0, 8.5),
+        'alpha1': (8.5, 10.5),
+        'alpha2': (10.5, 12.5),
+        'beta1': (12.5, 18.5),
+        'beta2': (18.5, 21.0),
+        'beta3': (21.0, 30.0),
+        'gamma': (30.0, 40.0)
+    }
+    fbands_ipeg_agg = get_frequency_bands(
+        collection='ipeg_aggregated')
+    assert fbands_ipeg_agg == {
+        'total': (1.5, 30),
+        'dominant': (6, 12.5)
+    }
+    fbands_hcp = get_frequency_bands(collection='hcp')
+    assert fbands_hcp == {
+        'low': (0.1, 1.5),
+        'delta': (1.5, 4.0),
+        'theta': (4.0, 8.0),
+        'alpha': (8.0, 15.0),
+        'beta_low': (15.0, 26.0),
+        'beta_high': (26.0, 35.0),
+        'gamma_low': (35.0, 50.0),
+        'gamma_mid': (50.0, 76.0),
+        'gamma_high': (76.0, 120.0)
+    }
+    fbands_hcp_agg = get_frequency_bands(
+        collection='hcp_aggregated')
+    assert fbands_hcp_agg == {'wide_band': (1.5, 150)}
+
+    fbands_ipeg_subset = get_frequency_bands(
+        collection='ipeg', subset=['alpha1', 'alpha2'])
+    assert fbands_ipeg_subset == {
+        'alpha1': (8.5, 10.5),
+        'alpha2': (10.5, 12.5)
+    }
+    with pytest.raises(KeyError, match="alpha3"):
+        fbands_ipeg_subset = get_frequency_bands(
+            collection='ipeg', subset=['alpha1', 'alpha3'])
+    with pytest.raises(ValueError,
+                       match='"Hans Berger" is not a valid collection'):
+        fbands_ipeg_subset = get_frequency_bands(
+            collection='Hans Berger')

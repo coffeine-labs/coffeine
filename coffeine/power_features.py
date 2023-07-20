@@ -125,7 +125,7 @@ def get_frequency_bands(
             "beta3": (21.0, 30.0),
             "gamma": (30.0, 40.0),
         })  # total: 1.5-30; dominant: 6-12.5
-    if collection == 'ipeg_aggregated':
+    elif collection == 'ipeg_aggregated':
         frequency_bands.update({
             'total': (1.5, 30),
             'dominant': (6, 12.5)
@@ -148,10 +148,11 @@ def get_frequency_bands(
         frequency_bands.update({
             'wide_band': (1.5, 150.0)
         })
+    else:
+        raise ValueError(f'"{collection}" is not a valid collection.')
     if subset is not None:
         frequency_bands = {
-            band: freqs for band, freqs in frequency_bands.items()
-            if band in subset
+            name: frequency_bands[name] for name in subset
         }
     return frequency_bands
 
