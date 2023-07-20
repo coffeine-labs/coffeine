@@ -37,16 +37,38 @@ class GaussianKernel(BaseEstimator, TransformerMixin):
     def __init__(self, sigma: float = 1.):
         self.sigma = sigma
 
-    def fit(self, X, y=None):
-        """Prepare Kernel."""
+    def fit(self,
+            X: Union[pd.DataFrame, np.ndarray],
+            y: Union[list[int, float], np.ndarray, None] = None):
+        """Prepare fitting kernel on training data.
+
+        Parameters
+        ----------
+        X : {pd.DataFrame} of shape (n_samples, n_covariances)
+            Training vector, where `n_samples` is the number of samples and
+            `n_covariances` = 1 (inside a column of a coffeine data frame).
+        y : array-like of shape (n_samples,)
+            Target vector relative to X.
+        """
         if isinstance(X, pd.DataFrame):
             X = X.values
         self.X = X.astype(np.float64)
         self.N = np.sum(self.X ** 2, axis=1)
         return self
 
-    def transform(self, X, y=None):
-        """Compute Kernel."""
+    def transform(self,
+                  X: Union[pd.DataFrame, np.ndarray],
+                  y: Union[list[int, float], np.ndarray, None] = None):
+        """Compute Kernel.
+
+        Parameters
+        ----------
+        X : {pd.DataFrame} of shape (n_samples, n_covariances)
+            Training vector, where `n_samples` is the number of samples and
+            `n_covariances` = 1 (inside a column of a coffeine data frame).
+        y : array-like of shape (n_samples,)
+            Target vector relative to X.
+        """
         C = 1.
         if isinstance(X, pd.DataFrame):
             X = X.values
@@ -62,7 +84,7 @@ class GaussianKernel(BaseEstimator, TransformerMixin):
 
         return C
 
-    def get_params(self, deep=True):
+    def get_params(self, deep: bool = True):
         """Get parameters."""
         return {"sigma": self.sigma}
 
@@ -82,11 +104,35 @@ class KernelSum(BaseEstimator, TransformerMixin):
     def __init__(self):
         pass
 
-    def fit(self, X, y=None):
+    def fit(self,
+            X: np.ndarray,
+            y: Union[list[int, float], np.ndarray, None] = None):
+        """Implement API neede for scikit-learn pipeline.
+
+        Parameters
+        ----------
+        X : {np.array} of shape (n_samples, n_covariances * n_samples_train)
+            Training vector, where `n_samples` is the number of samples and
+            `n_covariances` = 1 (inside a column of a coffeine data frame).
+        y : array-like of shape (n_samples,)
+            Target vector relative to X.
+        """
         self.n_train_ = len(X)
         return self
 
-    def transform(self, X, y=None):
+    def transform(self,
+            X: np.ndarray,
+            y: Union[list[int, float], np.ndarray, None] = None):
+        """Sum various kernels returned by column transformer.
+
+        Parameters
+        ----------
+        X : {np.array} of shape (n_samples, n_covariances * n_samples_train)
+            Training vector, where `n_samples` is the number of samples and
+            `n_covariances` = 1 (inside a column of a coffeine data frame).
+        y : array-like of shape (n_samples,)
+            Target vector relative to X.
+        """
         X_out = X
         if X.shape not in ((len(X), self.n_train_), (len(X), len(X))):
             X_out = X.reshape(len(X), -1, self.n_train_).sum(axis=1)

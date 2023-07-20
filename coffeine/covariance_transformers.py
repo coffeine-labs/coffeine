@@ -360,9 +360,8 @@ class Snp(TransformerMixin):
 
         Parameters
         ----------
-        X : {pd.DataFrame} of shape (n_samples, n_covariances)
-            Training vector, where `n_samples` is the number of samples and
-            `n_features` is the number of covariances (inside the columns).
+        X : {np.ndarray} of shape (n_samples, n_channles, n_channels)
+            Training vector, where `n_samples` is the number of samples.
         y : array-like of shape (n_samples,)
             Target vector relative to X.
         ref : np.ndarray of shape(n_channels, n_channels) or None
@@ -380,7 +379,7 @@ class Snp(TransformerMixin):
 
         Parameters
         ----------
-        X : {pd.DataFrame} of shape (n_samples, n_channles, n_channels)
+        X : {np.ndarray} of shape (n_samples, n_channles, n_channels)
             Training vector, where `n_samples` is the number of samples.
         """
         n_mat, n, _ = X.shape

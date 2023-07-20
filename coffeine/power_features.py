@@ -32,7 +32,7 @@ def _compute_covs_epochs(epochs, frequency_bands, method):
 
 def _compute_cross_frequency_covs(epochs, frequency_bands, method):
     epochs_frequency_bands = []
-    for ii, (fbname, fb) in enumerate(frequency_bands.items()):
+    for fbname, fb in frequency_bands.items():
         ef = epochs.copy().load_data().filter(fb[0], fb[1])
         for ch in ef.ch_names:
             ef.rename_channels({ch: ch+'_'+fbname})
@@ -156,10 +156,11 @@ def get_frequency_bands(
     return frequency_bands
 
 
-def make_coffeine_df(C: np.ndarray,
-                     names: Union[dict[str, tuple[float, float]],
-                                  list[str], tuple[str], None] = None
-                    ) -> pd.DataFrame:
+def make_coffeine_data_frame(
+        C: np.ndarray,
+        names: Union[dict[str, tuple[float, float]],
+        list[str], tuple[str], None] = None
+    ) -> pd.DataFrame:
     """Put covariances in coffeine Data Frame.
 
     Parameters
