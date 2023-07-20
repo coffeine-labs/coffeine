@@ -159,7 +159,7 @@ def get_frequency_bands(
 def make_coffeine_data_frame(
         C: np.ndarray,
         names: Union[dict[str, tuple[float, float]],
-        list[str], tuple[str], None] = None
+                     list[str], tuple[str], None] = None
         ) -> pd.DataFrame:
     """Put covariances in coffeine Data Frame.
 
