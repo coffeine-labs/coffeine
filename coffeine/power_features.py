@@ -55,8 +55,10 @@ def _compute_cospectral_covs(epochs, n_fft, n_overlap, fmin, fmax, fs):
     return cospectral_covs.transform(X).mean(axis=0).transpose((2, 0, 1))
 
 
-def get_frequency_bands(collection: str = 'ipeg',
-                        subset: Union[list, tuple, None] = None) -> dict:
+def get_frequency_bands(
+        collection: str = 'ipeg',
+        subset: Union[list[str], tuple[str], None] = None
+        ) -> dict[str, tuple[float, float]]:
     """Get pre-specified frequency bands based on the literature.
 
     Next to sets of bands for defining filterbank models, the aggregate
@@ -155,7 +157,9 @@ def get_frequency_bands(collection: str = 'ipeg',
 
 
 def make_coffeine_df(C: np.ndarray,
-                     names: Union[dict, list, tuple, None] = None):
+                     names: Union[dict[str, tuple[float, float]],
+                                  list[str], tuple[str], None] = None
+                    ) -> pd.DataFrame:
     """Put covariances in coffeine Data Frame.
 
     Parameters
@@ -253,7 +257,7 @@ def compute_coffeine(
         methods_params_fb_bands_.update(methods_params)
 
     C = list()
-    for ii, this_inst in enumerate(instance_list):
+    for this_inst in instance_list:
         features, feature_info = compute_features(
             this_inst, **methods_params_fb_bands_
         )
@@ -264,19 +268,19 @@ def compute_coffeine(
 
 
 def compute_features(
-        inst,
-        features=('psds', 'covs'),
-        duration=60.,
-        shift=10.,
-        n_fft=512,
-        n_overlap=256,
-        fs=63.0,
-        fmin=0,
-        fmax=30,
-        frequency_bands=None,
-        clean_func=lambda x: x,
-        cov_method='oas',
-        n_jobs=1):
+        inst: Union[BaseEpochs, BaseRaw],
+        features: Union[tuple[str], list[str]] = ('psds', 'covs'),
+        duration: float = 60.,
+        shift: float = 10.,
+        n_fft: int = 512,
+        n_overlap: int = 256,
+        fs: float = 63.0,
+        fmin: float = 0.,
+        fmax: float = 30.,
+        frequency_bands: Union[dict[str, tuple[float,float]], None] = None,
+        clean_func: callable = lambda x: x,
+        cov_method: str = 'oas',
+        n_jobs=1) -> tuple[dict, dict]:
     """Compute features from raw data or clean epochs.
 
     Parameters

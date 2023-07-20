@@ -1,3 +1,4 @@
+from typing import Union
 import numpy as np
 import pandas as pd
 from coffeine.covariance_transformers import (
@@ -27,8 +28,13 @@ class GaussianKernel(BaseEstimator, TransformerMixin):
 
     Efficient computation of squared exponential kernel for
     one column of covariances in a coffeine DataFrame.
+
+    Parameters
+    ----------
+    sigma : float
+        The sigma or length-scale parameter of the Gaussian kernel.
     """
-    def __init__(self, sigma=1.):
+    def __init__(self, sigma: float = 1.):
         self.sigma = sigma
 
     def fit(self, X, y=None):
@@ -88,13 +94,13 @@ class KernelSum(BaseEstimator, TransformerMixin):
 
 
 def make_filter_bank_transformer(
-        names,
-        method='riemann',
-        projection_params=None,
-        vectorization_params=None,
-        kernel=None,
-        combine_kernels=None,
-        categorical_interaction=None):
+        names: list[str],
+        method: str = 'riemann',
+        projection_params: Union[dict, None] = None,
+        vectorization_params: Union[dict, None] = None,
+        kernel: Union[str, Pipeline, None] = None,
+        combine_kernels: Union[str, Pipeline, None] = None,
+        categorical_interaction: Union[bool, None] = None):
     """Generate pipeline for filterbank models.
 
     Prepare filter bank models as used in [1]_. These models take as input
@@ -259,11 +265,14 @@ def make_filter_bank_transformer(
     return filter_bank_transformer
 
 
-def make_filter_bank_regressor(names, method='riemann',
-                               projection_params=None,
-                               vectorization_params=None,
-                               categorical_interaction=None, scaling=None,
-                               estimator=None):
+def make_filter_bank_regressor(
+        names: list[str],
+        method: str = 'riemann',
+        projection_params: Union[dict, None] = None,
+        vectorization_params: Union[dict, None] = None,
+        categorical_interaction: Union[bool, None] = None,
+        scaling: Union[BaseEstimator, None] = None,
+        estimator: Union[BaseEstimator, None] = None):
     """Generate pipeline for regression with filter bank model.
 
     Prepare filter bank models as used in [1]_. These models take as input
@@ -346,11 +355,14 @@ def make_filter_bank_regressor(names, method='riemann',
     return filter_bank_regressor
 
 
-def make_filter_bank_classifier(names, method='riemann',
-                                projection_params=None,
-                                vectorization_params=None,
-                                categorical_interaction=None, scaling=None,
-                                estimator=None):
+def make_filter_bank_classifier(
+        names: list[str],
+        method: str = 'riemann',
+        projection_params: Union[dict, None] = None,
+        vectorization_params: Union[dict, None] = None,
+        categorical_interaction: Union[bool, None] = None,
+        scaling: Union[BaseEstimator, None] = None,
+        estimator: Union[BaseEstimator, None] = None):
     """Generate pipeline for classification with filter bank model.
 
     Prepare filter bank models as used in [1]_. These models take as input
