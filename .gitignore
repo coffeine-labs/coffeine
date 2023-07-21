@@ -4,3 +4,4 @@ junit-results.xml
 *.swp
 *.egg-info
 __pycache__
+doc/generated/*rst

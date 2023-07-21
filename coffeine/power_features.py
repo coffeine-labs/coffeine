@@ -179,9 +179,15 @@ def make_coffeine_data_frame(
         The DataFrame of object type with lists of covariances accessible
         as columns.
     """
-    assert C.ndim == 4
-    assert C.shape[2] == C.shape[3]
-
+    if C.ndim != 4:
+        raise ValueError(
+            f'Expected input should have 4 dimensions, not {C.ndim}'
+        )
+    if C.shape[-1] != C.shape[-2]:
+        raise ValueError(
+            'The 2nd last dimensions should be the same. '
+            f'You provided: {C.shape}.'
+        )
     names_ = None
     if names is None:
         names_ = [f'c{cc}' for cc in range(C.shape[1])]

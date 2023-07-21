@@ -1,6 +1,12 @@
+import re
 import os
 import pytest
+
 import mne
+import numpy as np
+
+from pyriemann.datasets import make_matrices
+from coffeine import make_coffeine_data_frame
 
 
 from coffeine.power_features import compute_features, get_frequency_bands
@@ -144,3 +150,26 @@ def test_get_frequency_bands():
                        match='"Hans Berger" is not a valid collection'):
         fbands_ipeg_subset = get_frequency_bands(
             collection='Hans Berger')
+
+
+def test_make_coffeine_data_frame():
+    C = make_matrices(100, 5, kind='spd').reshape(50, 2, 5, 5)
+    names = ['a', 'b']
+
+    C_df = make_coffeine_data_frame(C=C, names=names)
+
+    assert C_df.columns.tolist() == names
+    assert np.all(np.array(C_df['a'].values.tolist()) == C[:, 0])
+    assert np.all(np.array(C_df['b'].values.tolist()) == C[:, 1])
+
+    with pytest.raises(
+            ValueError,
+            match=re.escape(
+                'The 2nd last dimensions should be the same. '
+                'You provided: (50, 2, 5, 3).')):
+        make_coffeine_data_frame(C=C[..., :3], names=names)
+
+    with pytest.raises(
+            ValueError,
+            match='Expected input should have 4 dimensions, not 3'):
+        make_coffeine_data_frame(C=C[:, 0, ...], names=names)
