@@ -1,3 +1,4 @@
+from typing import Union
 import numpy as np
 import pandas as pd
 from coffeine.covariance_transformers import (
@@ -27,20 +28,47 @@ class GaussianKernel(BaseEstimator, TransformerMixin):
 
     Efficient computation of squared exponential kernel for
     one column of covariances in a coffeine DataFrame.
+
+    Parameters
+    ----------
+    sigma : float
+        The sigma or length-scale parameter of the Gaussian kernel.
     """
-    def __init__(self, sigma=1.):
+    def __init__(self, sigma: float = 1.):
         self.sigma = sigma
 
-    def fit(self, X, y=None):
-        """Prepare Kernel."""
+    def fit(self,
+            X: Union[pd.DataFrame, np.ndarray],
+            y: Union[list[int, float], np.ndarray, None] = None):
+        """Prepare fitting kernel on training data.
+
+        Parameters
+        ----------
+        X : {pd.DataFrame} of shape (n_samples, n_covariances)
+            Training vector, where `n_samples` is the number of samples and
+            `n_covariances` = 1 (inside a column of a coffeine data frame).
+        y : array-like of shape (n_samples,)
+            Target vector relative to X.
+        """
         if isinstance(X, pd.DataFrame):
             X = X.values
         self.X = X.astype(np.float64)
         self.N = np.sum(self.X ** 2, axis=1)
         return self
 
-    def transform(self, X, y=None):
-        """Compute Kernel."""
+    def transform(self,
+                  X: Union[pd.DataFrame, np.ndarray],
+                  y: Union[list[int, float], np.ndarray, None] = None):
+        """Compute Kernel.
+
+        Parameters
+        ----------
+        X : {pd.DataFrame} of shape (n_samples, n_covariances)
+            Training vector, where `n_samples` is the number of samples and
+            `n_covariances` = 1 (inside a column of a coffeine data frame).
+        y : array-like of shape (n_samples,)
+            Target vector relative to X.
+        """
         C = 1.
         if isinstance(X, pd.DataFrame):
             X = X.values
@@ -56,7 +84,7 @@ class GaussianKernel(BaseEstimator, TransformerMixin):
 
         return C
 
-    def get_params(self, deep=True):
+    def get_params(self, deep: bool = True):
         """Get parameters."""
         return {"sigma": self.sigma}
 
@@ -76,11 +104,35 @@ class KernelSum(BaseEstimator, TransformerMixin):
     def __init__(self):
         pass
 
-    def fit(self, X, y=None):
+    def fit(self,
+            X: np.ndarray,
+            y: Union[list[int, float], np.ndarray, None] = None):
+        """Implement API neede for scikit-learn pipeline.
+
+        Parameters
+        ----------
+        X : {np.array} of shape (n_samples, n_covariances * n_samples_train)
+            Training vector, where `n_samples` is the number of samples and
+            `n_covariances` = 1 (inside a column of a coffeine data frame).
+        y : array-like of shape (n_samples,)
+            Target vector relative to X.
+        """
         self.n_train_ = len(X)
         return self
 
-    def transform(self, X, y=None):
+    def transform(self,
+                  X: np.ndarray,
+                  y: Union[list[int, float], np.ndarray, None] = None):
+        """Sum various kernels returned by column transformer.
+
+        Parameters
+        ----------
+        X : {np.array} of shape (n_samples, n_covariances * n_samples_train)
+            Training vector, where `n_samples` is the number of samples and
+            `n_covariances` = 1 (inside a column of a coffeine data frame).
+        y : array-like of shape (n_samples,)
+            Target vector relative to X.
+        """
         X_out = X
         if X.shape not in ((len(X), self.n_train_), (len(X), len(X))):
             X_out = X.reshape(len(X), -1, self.n_train_).sum(axis=1)
@@ -88,13 +140,13 @@ class KernelSum(BaseEstimator, TransformerMixin):
 
 
 def make_filter_bank_transformer(
-        names,
-        method='riemann',
-        projection_params=None,
-        vectorization_params=None,
-        kernel=None,
-        combine_kernels=None,
-        categorical_interaction=None):
+        names: list[str],
+        method: str = 'riemann',
+        projection_params: Union[dict, None] = None,
+        vectorization_params: Union[dict, None] = None,
+        kernel: Union[str, Pipeline, None] = None,
+        combine_kernels: Union[str, Pipeline, None] = None,
+        categorical_interaction: Union[bool, None] = None):
     """Generate pipeline for filterbank models.
 
     Prepare filter bank models as used in [1]_. These models take as input
@@ -137,22 +189,22 @@ def make_filter_bank_transformer(
     vectorization_params : dict | None
         The parameters for the vectorization step.
     kernel : None | 'gaussian' | sklearn.Pipeline
-        The Kernel option for kernel regression. If 'gaussian', a Gaussian Kernel
-        will be added per column and the results will be summed over frequencies.
-        If sklearn.pipeline.Pipeline is passed, it should return a meaningful
-        kernel.
+        The Kernel option for kernel regression. If 'gaussian', a Gaussian
+        Kernel will be added per column and the results will be summed over
+        frequencies. If sklearn.pipeline.Pipeline is passed, it should return
+        a meaningful kernel.
     combine_kernels : None | 'sum' | sklearn.pipeline.Pipeline
-        If kernel is used and multiple columns are defined, this option determines
-        how a combined kernel is constructed. 'sum' adds the kernels with equal
-        weights. A custom pipeline pipeline can be passed to implement alternative
-        rules.
+        If kernel is used and multiple columns are defined, this option
+        determines how a combined kernel is constructed. 'sum' adds the
+        kernels with equal weights. A custom pipeline pipeline can be passed to
+        implement alternative rules.
     categorical_interaction : str
         The column in the input data frame containing a binary descriptor
         used to fit 2-way interaction effects.
 
     References
     ----------
-    [1] D. Sabbagh, P. Ablin, G. Varoquaux, A. Gramfort, and D.A. Engemann.
+    .. [1] D. Sabbagh, P. Ablin, G. Varoquaux, A. Gramfort, and D.A. Engemann.
         Predictive regression modeling with MEG/EEG: from source power
         to signals and cognitive states.
         *NeuroImage*, page 116893,2020. ISSN 1053-8119.
@@ -233,7 +285,9 @@ def make_filter_bank_transformer(
     # add Kernel options
     if (isinstance(kernel, Pipeline) and not
             isinstance(kernel, (BaseEstimator, TransformerMixin))):
-        raise ValueError('Custom kernel must be an estimator and a transformer).')
+        raise ValueError(
+            'Custom kernel must be an estimator and a transformer).'
+        )
     elif kernel == 'gaussian':
         kernel = (
             'gaussiankernel', GaussianKernel
@@ -241,7 +295,8 @@ def make_filter_bank_transformer(
         combine_kernels = 'sum'
 
     filter_bank_transformer = make_column_transformer(
-        *_get_projector_vectorizer(*steps, kernel=kernel), remainder='passthrough'
+        *_get_projector_vectorizer(*steps, kernel=kernel),
+        remainder='passthrough'
     )
 
     if combine_kernels is not None:
@@ -256,11 +311,14 @@ def make_filter_bank_transformer(
     return filter_bank_transformer
 
 
-def make_filter_bank_regressor(names, method='riemann',
-                               projection_params=None,
-                               vectorization_params=None,
-                               categorical_interaction=None, scaling=None,
-                               estimator=None):
+def make_filter_bank_regressor(
+        names: list[str],
+        method: str = 'riemann',
+        projection_params: Union[dict, None] = None,
+        vectorization_params: Union[dict, None] = None,
+        categorical_interaction: Union[bool, None] = None,
+        scaling: Union[BaseEstimator, None] = None,
+        estimator: Union[BaseEstimator, None] = None):
     """Generate pipeline for regression with filter bank model.
 
     Prepare filter bank models as used in [1]_. These models take as input
@@ -314,12 +372,11 @@ def make_filter_bank_regressor(names, method='riemann',
 
     References
     ----------
-    [1] D. Sabbagh, P. Ablin, G. Varoquaux, A. Gramfort, and D.A. Engemann.
+    .. [1] D. Sabbagh, P. Ablin, G. Varoquaux, A. Gramfort, and D.A. Engemann.
         Predictive regression modeling with MEG/EEG: from source power
         to signals and cognitive states.
         *NeuroImage*, page 116893,2020. ISSN 1053-8119.
         https://doi.org/10.1016/j.neuroimage.2020.116893
-
     """
     filter_bank_transformer = make_filter_bank_transformer(
         names=names, method=method, projection_params=projection_params,
@@ -344,11 +401,14 @@ def make_filter_bank_regressor(names, method='riemann',
     return filter_bank_regressor
 
 
-def make_filter_bank_classifier(names, method='riemann',
-                                projection_params=None,
-                                vectorization_params=None,
-                                categorical_interaction=None, scaling=None,
-                                estimator=None):
+def make_filter_bank_classifier(
+        names: list[str],
+        method: str = 'riemann',
+        projection_params: Union[dict, None] = None,
+        vectorization_params: Union[dict, None] = None,
+        categorical_interaction: Union[bool, None] = None,
+        scaling: Union[BaseEstimator, None] = None,
+        estimator: Union[BaseEstimator, None] = None):
     """Generate pipeline for classification with filter bank model.
 
     Prepare filter bank models as used in [1]_. These models take as input
@@ -402,7 +462,7 @@ def make_filter_bank_classifier(names, method='riemann',
 
     References
     ----------
-    [1] D. Sabbagh, P. Ablin, G. Varoquaux, A. Gramfort, and D.A. Engemann.
+    .. [1] D. Sabbagh, P. Ablin, G. Varoquaux, A. Gramfort, and D.A. Engemann.
         Predictive regression modeling with MEG/EEG: from source power
         to signals and cognitive states.
         *NeuroImage*, page 116893,2020. ISSN 1053-8119.
@@ -423,10 +483,10 @@ def make_filter_bank_classifier(names, method='riemann',
     if estimator_ is None:
         estimator_ = LogisticRegression(solver='liblinear')
 
-    filter_bank_regressor = make_pipeline(
+    filter_bank_classifier = make_pipeline(
         filter_bank_transformer,
         scaling_,
         estimator_
     )
 
-    return filter_bank_regressor
+    return filter_bank_classifier

@@ -26,6 +26,6 @@ from .covariance_transformers import Riemann, Diag, LogDiag, ExpandFeatures, Nai
 
 from .pipelines import make_filter_bank_transformer, make_filter_bank_regressor, make_filter_bank_classifier   # noqa
 
-from .power_features import compute_features  # noqa
+from .power_features import compute_features, get_frequency_bands, compute_coffeine, make_coffeine_data_frame  # noqa
 
 from .spatial_filters import ProjIdentitySpace, ProjCommonSpace, ProjLWSpace, ProjRandomSpace, ProjSPoCSpace  # noqa

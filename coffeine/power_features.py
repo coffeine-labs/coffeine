@@ -1,4 +1,6 @@
+from typing import Union
 import numpy as np
+import pandas as pd
 from scipy.stats import trim_mean
 from pyriemann.estimation import CospCovariances
 import mne
@@ -6,7 +8,7 @@ from mne.io import BaseRaw
 from mne.epochs import BaseEpochs
 
 
-def _compute_covs_raw(raw, clean_events, frequency_bands, duration):
+def _compute_covs_raw(raw, clean_events, frequency_bands, duration, method):
     covs = list()
     for _, fb in frequency_bands.items():
         rf = raw.copy().load_data().filter(fb[0], fb[1])
@@ -14,23 +16,23 @@ def _compute_covs_raw(raw, clean_events, frequency_bands, duration):
             rf, clean_events, event_id=3000, tmin=0, tmax=duration,
             proj=True, baseline=None, reject=None, preload=False, decim=1,
             picks=None)
-        cov = mne.compute_covariance(ec, method='oas', rank=None)
+        cov = mne.compute_covariance(ec, method=method, rank=None)
         covs.append(cov.data)
     return np.array(covs)
 
 
-def _compute_covs_epochs(epochs, frequency_bands):
+def _compute_covs_epochs(epochs, frequency_bands, method):
     covs = list()
     for _, fb in frequency_bands.items():
         ec = epochs.copy().load_data().filter(fb[0], fb[1])
-        cov = mne.compute_covariance(ec, method='oas', rank=None)
+        cov = mne.compute_covariance(ec, method=method, rank=None)
         covs.append(cov.data)
     return np.array(covs)
 
 
-def _compute_cross_frequency_covs(epochs, frequency_bands):
+def _compute_cross_frequency_covs(epochs, frequency_bands, method):
     epochs_frequency_bands = []
-    for ii, (fbname, fb) in enumerate(frequency_bands.items()):
+    for fbname, fb in frequency_bands.items():
         ef = epochs.copy().load_data().filter(fb[0], fb[1])
         for ch in ef.ch_names:
             ef.rename_channels({ch: ch+'_'+fbname})
@@ -40,7 +42,7 @@ def _compute_cross_frequency_covs(epochs, frequency_bands):
     for e in epochs_frequency_bands[1:]:
         epochs_final.add_channels([e], force_update_info=True)
     n_chan = epochs_final.info['nchan']
-    cov = mne.compute_covariance(epochs_final, method='oas', rank=None)
+    cov = mne.compute_covariance(epochs_final, method=method, rank=None)
     corr = np.corrcoef(
         epochs_final.get_data().transpose((1, 0, 2)).reshape(n_chan, -1))
     return cov.data, corr
@@ -53,19 +55,261 @@ def _compute_cospectral_covs(epochs, n_fft, n_overlap, fmin, fmax, fs):
     return cospectral_covs.transform(X).mean(axis=0).transpose((2, 0, 1))
 
 
+def get_frequency_bands(
+        collection: str = 'ipeg',
+        subset: Union[list[str], tuple[str], None] = None
+        ) -> dict[str, tuple[float, float]]:
+    """Get pre-specified frequency bands based on the literature.
+
+    Next to sets of bands for defining filterbank models, the aggregate
+    defined in the corresponding literature are provided.
+
+    .. note::
+        The HCP-MEG[1] frequency band was historically based on the
+        documentation of the MEG analysis from the HCP-500 MEG2 release:
+        https://wiki.humanconnectome.org/display/PublicData/MEG+Data+FAQ
+
+        As frequencies below 1.5Hz were omitted the work presented in [2,3]
+        also defined a 'low' band (0.1 - 1.5Hz) while retaining the the other
+        frequencies.
+
+    .. note::
+        The IPEG frequency bands were developed in [4].
+
+    .. note::
+        Additional band definitions can be added as per (pull) request.
+
+    Parameters
+    ----------
+    collection : {'ipeg', 'ipeg_aggregated', 'hcp', 'hcp_aggregated'}
+        The set of frequency bands. Defaults to 'hcp'.
+    subset : list-like
+        A selection of valid keys to return a subset of frequency
+        bands from a collection.
+
+    Returns
+    -------
+    frequency_bands : dict
+        The band definitions.
+
+    References
+    ----------
+    [1] Larson-Prior, L. J., R. Oostenveld, S. Della Penna, G. Michalareas,
+        F. Prior, A. Babajani-Feremi, J-M Schoffelen, et al. 2013.
+        “Adding Dynamics to the Human Connectome Project with MEG.”
+        NeuroImage 80 (October): 190–201.
+    [2] D. Sabbagh, P. Ablin, G. Varoquaux, A. Gramfort, and D.A. Engemann.
+        Predictive regression modeling with MEG/EEG: from source power
+        to signals and cognitive states.
+        *NeuroImage*, page 116893,2020. ISSN 1053-8119.
+        https://doi.org/10.1016/j.neuroimage.2020.116893
+    [3] D. A. Engemann, O. Kozynets, D. Sabbagh, G. Lemaître, G. Varoquaux,
+        F. Liem, and A. Gramfort Combining magnetoencephalography with
+        magnetic resonance imaging enhances learning of surrogate-biomarkers.
+        eLife, 9:e54055, 2020 <https://elifesciences.org/articles/54055>
+    [4] Jobert, M., Wilson, F.J., Ruigt, G.S., Brunovsky, M., Prichep,
+        L.S., Drinkenburg, W.H. and IPEG Pharmaco-EEG Guideline Committee,
+        2012. Guidelines for the recording and evaluation of pharmaco-EEG data
+        in man: the International Pharmaco-EEG Society (IPEG).
+        Neuropsychobiology, 66(4), pp.201-220.
+    """
+    frequency_bands = dict()
+    if collection == 'ipeg':
+        frequency_bands.update({
+            "delta": (1.5, 6.0),
+            "theta": (6.0, 8.5),
+            "alpha1": (8.5, 10.5),
+            "alpha2": (10.5, 12.5),
+            "beta1": (12.5, 18.5),
+            "beta2": (18.5, 21.0),
+            "beta3": (21.0, 30.0),
+            "gamma": (30.0, 40.0),
+        })  # total: 1.5-30; dominant: 6-12.5
+    elif collection == 'ipeg_aggregated':
+        frequency_bands.update({
+            'total': (1.5, 30),
+            'dominant': (6, 12.5)
+        })
+    elif collection == 'hcp':
+        # https://www.humanconnectome.org/storage/app/media/documentation/
+        # s500/hcps500meg2releasereferencemanual.pdf
+        frequency_bands.update({
+            'low': (0.1, 1.5),  # added later in [2,3].
+            'delta': (1.5, 4.0),
+            'theta': (4.0, 8.0),
+            'alpha': (8.0, 15.0),
+            'beta_low': (15.0, 26.0),
+            'beta_high': (26.0, 35.0),
+            'gamma_low': (35.0, 50.0),
+            'gamma_mid': (50.0, 76.0),
+            'gamma_high': (76.0, 120.0)
+        })
+    elif collection == 'hcp_aggregated':
+        frequency_bands.update({
+            'wide_band': (1.5, 150.0)
+        })
+    else:
+        raise ValueError(f'"{collection}" is not a valid collection.')
+    if subset is not None:
+        frequency_bands = {
+            name: frequency_bands[name] for name in subset
+        }
+    return frequency_bands
+
+
+def make_coffeine_data_frame(
+        C: np.ndarray,
+        names: Union[dict[str, tuple[float, float]],
+                     list[str], tuple[str], None] = None
+        ) -> pd.DataFrame:
+    """Put covariances in coffeine Data Frame.
+
+    Parameters
+    ----------
+    C : np.ndarray, shape(n_obs, n_frequencies, n_channels, n_channels)
+        A 2D collection of symmetric matrices. First dimension: samples.
+        Second dimension: batches within observations (e.g. frequencies).
+    names : dict or list-like, defaults to None
+        A descriptor for the second dimension of `C`. It is used to make
+        the columns of the coffeine Data Frame
+
+    Returns
+    -------
+    C_df : pd.DataFrame
+        The DataFrame of object type with lists of covariances accessible
+        as columns.
+    """
+    if C.ndim != 4:
+        raise ValueError(
+            f'Expected input should have 4 dimensions, not {C.ndim}'
+        )
+    if C.shape[-1] != C.shape[-2]:
+        raise ValueError(
+            'The 2nd last dimensions should be the same. '
+            f'You provided: {C.shape}.'
+        )
+    names_ = None
+    if names is None:
+        names_ = [f'c{cc}' for cc in range(C.shape[1])]
+    else:
+        names_ = names
+
+    C_df = pd.DataFrame(
+        {name: list(C[:, ii]) for ii, name in enumerate(names_)}
+    )
+    return C_df
+
+
+def _split_epochs(epochs):
+    out = list()
+    if len(epochs) > 1:
+        for ii in range(len(epochs)):
+            out.append(epochs[ii])
+    else:
+        out.append(epochs)
+    return out
+
+
+def compute_coffeine(
+        inst: Union[mne.io.BaseRaw, mne.BaseEpochs],
+        frequencies: Union[str, tuple, dict] = 'ipeg',
+        methods_params: Union[None, dict] = None
+        ) -> pd.DataFrame:
+    """Compute & spectral features as SPD matrices in a Data Frame.
+
+    Parameters
+    ----------
+    inst : mne.io.Raw | mne.Epochs or list-like
+        The MNE instance containing raw signals from which to compute
+        the features. If list-like, expected to contain MNE-Instances.
+    frequencies : str | dict
+        The frequency parameter. Either the name of a collection supported
+        by `get_frequency_bands`or a dictionary of frequency names and ranges.
+    methods_params : dict
+        The methods paramaters used in the down-stream function for feature
+        computation.
+
+    Returns
+    -------
+    C_df : pd.DataFrame
+        The coffeine DataFrame with columns filled with object arrays of
+        covariances.
+    """
+    instance_list = list()
+    if isinstance(inst, mne.io.BaseRaw):
+        instance_list.append(inst)
+    elif isinstance(inst, mne.BaseEpochs):
+        instance_list.extend(_split_epochs(inst))
+    elif isinstance(inst, (list, tuple)):
+        if isinstance(inst[0], mne.io.BaseRaw):
+            instance_list.extend(inst)
+        elif isinstance(inst[0], mne.BaseEpochs):
+            for epochs in inst:
+                instance_list.extend(_split_epochs(epochs))
+    else:
+        raise ValueError('Unexpected value for instance.')
+    assert len(instance_list) >= 1
+
+    types = list({type(inst) for inst in instance_list})
+    if len(types) > 1:
+        raise ValueError('Mixed instance types are not supported.')
+    inst_mode = ''
+    if 'raw' in str(types[0]).lower():
+        inst_mode = 'raw'
+    elif 'epochs' in str(types[0]).lower():
+        inst_mode = 'epochs'
+    assert inst_mode in ('raw', 'epochs')
+
+    frequencies_ = None
+    if frequencies in ('ipeg', 'hcp'):
+        frequencies_ = get_frequency_bands(collection=frequencies)
+    elif isinstance(frequencies, tuple) and frequencies[0] in ('ipeg', 'hcp'):
+        frequencies_ = get_frequency_bands(
+            collection=frequencies[0], subset=frequencies[1]
+        )
+    elif isinstance(frequencies, dict):
+        frequencies_ = frequencies
+    else:
+        raise NotImplementedError(
+            'Currently, only collection names or fully-spelled band ranges '
+            'are supported as frequency definitions.'
+        )
+
+    freq_values = sum([list(v) for v in frequencies_.values()], [])
+    methods_params_fb_bands_ = dict(
+        features=('covs',), n_fft=1024, n_overlap=512,
+        cov_method='oas', fs=instance_list[0].info['sfreq'],
+        frequency_bands=frequencies_,
+        fmin=min(freq_values), fmax=max(freq_values)
+    )
+    if methods_params is not None:
+        methods_params_fb_bands_.update(methods_params)
+
+    C = list()
+    for this_inst in instance_list:
+        features, feature_info = compute_features(
+            this_inst, **methods_params_fb_bands_
+        )
+        C.append(features['covs'])
+    C = np.array(C)
+    C_df = make_coffeine_data_frame(C=C, names=frequencies_)
+    return C_df, feature_info
+
+
 def compute_features(
-        inst,
-        features=('psds', 'covs'),
-        duration=60.,
-        shift=10.,
-        n_fft=512,
-        n_overlap=256,
-        fs=63.0,
-        fmin=0,
-        fmax=30,
-        frequency_bands=None,
-        clean_func=lambda x: x,
-        n_jobs=1):
+        inst: Union[BaseEpochs, BaseRaw],
+        features: Union[tuple[str], list[str]] = ('psds', 'covs'),
+        duration: float = 60.,
+        shift: float = 10.,
+        n_fft: int = 512,
+        n_overlap: int = 256,
+        fs: float = 63.0,
+        fmin: float = 0.,
+        fmax: float = 30.,
+        frequency_bands: Union[dict[str, tuple[float, float]], None] = None,
+        clean_func: callable = lambda x: x,
+        cov_method: str = 'oas',
+        ) -> tuple[dict, dict]:
     """Compute features from raw data or clean epochs.
 
     Parameters
@@ -106,8 +350,10 @@ def compute_features(
         If nothing is provided, defaults to {'alpha': (8.0, 12.0)}.
     clean_func : lambda function
         If nothing is provided, defaults to lambda x: x.
-    n_jobs : int
-        If nothing is provided, defaults to 1.
+    cov_method : str (default 'oas')
+        The covariance estimator to be used. Ignored for feature types not
+        not related to covariances. Must be a method accepted by MNE's
+        covariance functions.
 
     Returns
     -------
@@ -136,13 +382,14 @@ def compute_features(
         clean_events = events[epochs_clean.selection]
         if 'covs' in features:
             covs = _compute_covs_raw(inst, clean_events, frequency_bands_,
-                                     duration)
+                                     duration, method=cov_method)
             computed_features['covs'] = covs
 
     elif isinstance(inst, BaseEpochs):
         epochs_clean = clean_func(inst)
         if 'covs' in features:
-            covs = _compute_covs_epochs(epochs_clean, frequency_bands_)
+            covs = _compute_covs_epochs(epochs_clean, frequency_bands_,
+                                        method=cov_method)
             computed_features['covs'] = covs
     else:
         raise ValueError('Inst must be raw or epochs.')
@@ -163,8 +410,8 @@ def compute_features(
 
     if 'psds' in features:
         spectrum = epochs_clean.compute_psd(
-                method="welch", fmin=fmin, fmax=fmax, n_fft=n_fft,
-                n_overlap=n_overlap, average='mean', picks=None)
+            method="welch", fmin=fmin, fmax=fmax, n_fft=n_fft,
+            n_overlap=n_overlap, average='mean', picks=None)
         psds_clean = spectrum.get_data()
         psds = trim_mean(psds_clean, 0.25, axis=0)
         computed_features['psds'] = psds
@@ -174,7 +421,7 @@ def compute_features(
             'cross_frequency_corrs' in features):
         (cross_frequency_covs,
             cross_frequency_corrs) = _compute_cross_frequency_covs(
-            epochs_clean, frequency_bands_)
+            epochs_clean, frequency_bands_, method=cov_method)
         computed_features['cross_frequency_covs'] = cross_frequency_covs
         computed_features['cross_frequency_corrs'] = cross_frequency_corrs
 
