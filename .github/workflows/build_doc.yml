@@ -5,7 +5,7 @@ on:
   pull_request:
   push:
     branches:
-      - 'master'  
+      - 'main'  
 
 jobs:
   build:
@@ -44,11 +44,3 @@ jobs:
       with:
         name: Documentation
         path: doc/_build/html/
-    - name: Deploy
-        uses: peaceiris/actions-gh-pages@v3
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
-        with:
-          publish_branch: gh-pages
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: doc/_build/html/
-          force_orphan: true
