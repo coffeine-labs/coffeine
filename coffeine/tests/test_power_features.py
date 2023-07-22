@@ -6,7 +6,7 @@ import mne
 import numpy as np
 
 from pyriemann.datasets import make_matrices
-from coffeine import make_coffeine_data_frame
+from coffeine import make_coffeine_data_frame, compute_coffeine
 
 
 from coffeine.power_features import compute_features, get_frequency_bands
@@ -173,3 +173,67 @@ def test_make_coffeine_data_frame():
             ValueError,
             match='Expected input should have 4 dimensions, not 3'):
         make_coffeine_data_frame(C=C[:, 0, ...], names=names)
+
+
+def test_compute_coffeine():
+    raw = mne.io.read_raw_fif(raw_fname, verbose=False)
+    raw = raw.copy().crop(0, 200).pick(
+        [0, 1, 330, 331, 332]  # take some MEG and EEG
+    )
+    raw.info.normalize_proj()
+    C_df1, _ = compute_coffeine(raw, frequencies=frequency_bands)
+    assert len(C_df1) == 1
+    assert C_df1.columns.tolist() == list(frequency_bands)
+
+    C_df2, _ = compute_coffeine(
+        [raw.copy().crop(0, 90), raw.copy().crop(90, 180)],
+        frequencies=frequency_bands
+    )
+    assert len(C_df2) == 2
+    assert C_df2.columns.tolist() == list(frequency_bands)
+    assert not np.all(C_df2['alpha'].iloc[0] == C_df2['alpha'].iloc[1])
+
+    C_df3, _ = compute_coffeine(
+        raw, frequencies=('ipeg', ('alpha1', 'alpha2'))
+    )
+    assert len(C_df3) == 1
+    assert C_df3.columns.tolist() == ['alpha1', 'alpha2']
+
+    epochs = mne.make_fixed_length_epochs(raw).load_data()
+    C_df4, _ = compute_coffeine(
+        epochs[:5], frequencies=('ipeg', ('alpha1', 'alpha2'))
+    )
+    assert len(C_df4) == 5
+    assert len({np.linalg.norm(c, 'nuc') for c
+                in C_df4['alpha1'].values}) == 5
+    assert C_df4.columns.tolist() == ['alpha1', 'alpha2']
+
+    C_df5, _ = compute_coffeine(
+        [epochs[:5], epochs[5:10]],
+        frequencies=('ipeg', ('alpha1', 'alpha2'))
+    )
+    assert len(C_df5) == 10
+    assert len({np.linalg.norm(c, 'nuc') for c in
+                C_df5['alpha1'].values}) == 10
+    assert C_df5.columns.tolist() == ['alpha1', 'alpha2']
+
+    with pytest.raises(
+            NotImplementedError,
+            match=re.escape(
+                'Currently, only collection names or '
+                'fully-spelled band ranges '
+                'are supported as frequency definitions.')):
+        compute_coffeine(raw, frequencies=(0, 1))
+
+    with pytest.raises(
+            ValueError,
+            match=re.escape('Mixed instance types are '
+                            'not supported.')):
+        compute_coffeine(
+            [raw, epochs], frequencies=frequency_bands)
+
+    with pytest.raises(
+            ValueError,
+            match=re.escape('Unexpected value for instance.')):
+        compute_coffeine(
+            epochs.get_data(), frequencies=frequency_bands)

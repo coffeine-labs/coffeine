@@ -200,6 +200,16 @@ def make_coffeine_data_frame(
     return C_df
 
 
+def _split_epochs(epochs):
+    out = list()
+    if len(epochs) > 1:
+        for ii in range(len(epochs)):
+            out.append(epochs[ii])
+    else:
+        out.append(epochs)
+    return out
+
+
 def compute_coffeine(
         inst: Union[mne.io.BaseRaw, mne.BaseEpochs],
         frequencies: Union[str, tuple, dict] = 'ipeg',
@@ -229,16 +239,27 @@ def compute_coffeine(
     if isinstance(inst, mne.io.BaseRaw):
         instance_list.append(inst)
     elif isinstance(inst, mne.BaseEpochs):
-        if len(inst) == 1:
-            instance_list.append(inst)
-        elif len(inst) > 1:
-            for ii in range(len(inst)):
-                instance_list.append(inst[ii])
-    elif isinstance(inst, list):
-        instance_list.extend(inst)
+        instance_list.extend(_split_epochs(inst))
+    elif isinstance(inst, (list, tuple)):
+        if isinstance(inst[0], mne.io.BaseRaw):
+            instance_list.extend(inst)
+        elif isinstance(inst[0], mne.BaseEpochs):
+            for epochs in inst:
+                instance_list.extend(_split_epochs(epochs))
     else:
         raise ValueError('Unexpected value for instance.')
     assert len(instance_list) >= 1
+
+    types = list({type(inst) for inst in instance_list})
+    if len(types) > 1:
+        raise ValueError('Mixed instance types are not supported.')
+    inst_mode = ''
+    if 'raw' in str(types[0]).lower():
+        inst_mode = 'raw'
+    elif 'epochs' in str(types[0]).lower():
+        inst_mode = 'epochs'
+    assert inst_mode in ('raw', 'epochs')
+
     frequencies_ = None
     if frequencies in ('ipeg', 'hcp'):
         frequencies_ = get_frequency_bands(collection=frequencies)
@@ -250,8 +271,8 @@ def compute_coffeine(
         frequencies_ = frequencies
     else:
         raise NotImplementedError(
-            'Currently, only collection names or fully-spelled band ranges are'
-            ' supported as frequency definitions.'
+            'Currently, only collection names or fully-spelled band ranges '
+            'are supported as frequency definitions.'
         )
 
     freq_values = sum([list(v) for v in frequencies_.values()], [])
