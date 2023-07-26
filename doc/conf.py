@@ -122,4 +122,5 @@ html_context = {
     "github_user": "coffeine-labs",
     "github_repo": "coffeine",
     "github_version": "main",
+    "doc_path": "doc"
 }
