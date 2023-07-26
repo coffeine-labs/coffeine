@@ -3,40 +3,57 @@
 ![Build](https://github.com/coffeine-labs/coffeine/workflows/tests/badge.svg)
 <!-- ![Codecov](https://codecov.io/gh/coffeine-labs/coffeine/branch/main/graph/badge.svg) -->
 
-## Summary
+Coffeine is designed for building biomedical prediction models from M/EEG signals. The library provides a high-level interface facilitating the use of M/EEG covariance matrix as representation of the signal. The methods implemented here make use of tools and concepts implemented in [PyRiemann](https://pyriemann.readthedocs.io/). The API is fully compatible with [scikit-learn](https://scikit-learn.org/) and naturally integrates with [MNE](https://mne.tools). 
 
-The `coffeine` library implements provides a high-level interface to the predictive modeling techniques focusing on the M/EEG covariance matrix as representation of the signal. The methods implemented here are built on top of [PyRiemann](https://pyriemann.readthedocs.io/en/latest/installing.html) while the API is designed with the more specific use-case of building biomedical prediction models from M/EEG signals. For this purpose, `coffeine` uses DataFrames to handle multiple covariance matrices alongside scalar features. Vectorization and model composition functions are provided that handle composition of scikit-learn compatible modeling pipelines from covariances alongside other types of features.
 
-For details on the feature extraction pipelines and statistical models, please consider the following references:
+```python
+import mne
+from coffeine import compute_coffeine, make_filter_bank_regressor
 
-[1] D. Sabbagh, P. Ablin, G. Varoquaux, A. Gramfort, and D. A. Engemann.
-Predictive regression modeling with MEG/EEG: from source power to signals and cognitive states.
-*NeuroImage*, page 116893,2020. ISSN 1053-8119.
-<https://www.sciencedirect.com/science/article/pii/S1053811920303797>
+# load EEG data from linguistic experiment
+eeg_fname = mne.datasets.kiloword.data_path() / "kword_metadata-epo.fif"
+epochs = mne.read_epochs(eeg_fname)[:50]  # 50 samples
 
-[2] D. Sabbagh, P. Ablin, G. Varoquaux, A. Gramfort,
-and D. A. Engemann.
-Manifold-regression to predict from MEG/EEG brain signals
-without source modeling.
-*NeurIPS* (Advances in Neural Information Processing Systems) 32.
-<https://papers.nips.cc/paper/8952-manifold-regression-to-predict-from-megeeg-brain-signals-without-source-modeling>
+# compute covariances in different frequency bands 
+X_df, feature_info = compute_coffeine(  # (defined by IPEG consortium)
+    epochs, frequencies=('ipeg', ('delta', 'theta', 'alpha1'))
+)  # ... and put results in a pandas DataFrame.
+y = epochs.metadata["WordFrequency"]  # regression target
 
-[3] D. A. Engemann, O. Kozynets, D. Sabbagh, G. Lemaître, G. Varoquaux, F. Liem, and A. Gramfort
-Combining magnetoencephalography with magnetic resonance imaging enhances learning of surrogate-biomarkers.
-*eLife*, 9:e54055, 2020
-<https://elifesciences.org/articles/54055>
+# compose a pipeline
+model = make_filter_bank_regressor(method='riemann', names=X_df.columns)
+model.fit(X_df, y)
+```
+<img width="1424" alt="image" src="https://github.com/coffeine-labs/coffeine/assets/1908618/161b997c-a51b-4885-9775-a1e5b84e10f9">
 
-The filter-bank pipelines (across multiple frequency bands) can the thought of as follows:
+```python
+import matplotlib.pyplot as plt
 
-<img width="1380" alt="meeg_pipelines" src="https://user-images.githubusercontent.com/1908618/115611659-a6d5ab80-a2ea-11eb-935c-006cad4fc8e5.png">
+fig, axes = plt.subplots(1, 3, figsize=(8, 3))
+for ii, name in enumerate(('delta', 'theta', 'alpha1')):
+    axes[ii].matshow(X_df[name].mean(), cmap='PuOr')
+    axes[ii].set_title(name)
+```
+    
+<img width="1108" alt="image" src="https://github.com/coffeine-labs/coffeine/assets/1908618/0d8e3882-177b-4dc2-9f60-343870713a82">
 
-After preprocessing, covariance matrices can be projected to mitigate field spread and deal with rank deficient signals.
-Subsequently, vectorization is performed to extract column features from the variance, covariance or both.
+## Background
+
+For this purpose, `coffeine` uses DataFrames to handle multiple covariance matrices alongside scalar features. Vectorization and model composition functions are provided that handle composition of valid [scikit-learn](https://scikit-learn.org/) modeling pipelines from covariances alongside other types of features as inputs.
+
+The filter-bank pipelines (e.g. across multiple frequency bands or conditions) can the thought of as follows:
+
+![](https://user-images.githubusercontent.com/1908618/115611659-a6d5ab80-a2ea-11eb-935c-006cad4fc8e5.png)
+**M/EEG covariance-based modeling pipeline from [Sabbagh et al. 2020, NeuroImage](https://doi.org/10.1016/j.neuroimage.2020.116893https://doi.org/10.1016/j.neuroimage.2020.116893)**
+
+After preprocessing, covariance matrices can be ___projected___ to a subspace by spatial filtering to mitigate field spread and deal with rank deficient signals.
+Subsequently, ___vectorization___ is performed to extract column features from the variance, covariance or both.
+Every path combnining different lines in the graph describes one particular prediction model.
 The Riemannian embedding is special in mitigating field spread and providing vectorization in 1 step.
 It can be combined with dimensionality reduction in the projection step to deal with rank deficiency.
-Finally, a statistical learning algorithm is applied.
+Finally, a statistical learning algorithm can be applied.
 
-The representation, projection and vectorization steps are separately done for each frequency band.
+The representation, projection and vectorization steps are separately done for each frequency band (or condition).
 
 ## Installation of Python package
 
@@ -52,89 +69,23 @@ Everything worked if the following command do not return any error:
 
   `$ python -c 'import coffeine'`
 
-## Use with Python
 
-### compute_features
+## Citation
 
-Compute power features from raw M/EEG data:
+When publishing research using coffeine, please cite our core paper.
 
-- The power spectral density
-- The spectral covariance matrices
-- The cospectral covariance matrices
-- The cross-frequency covariance matrices
-- The cross-frequency correlation matrices
-
-The matrices are of shape (n_frequency_bands, n_channels, n_channels)
-
-Use case example:
-
-```python
-import os
-import mne
-
-from coffeine import compute_features
-
-data_path = mne.datasets.sample.data_path()
-data_dir = os.path.join(data_path, 'MEG', 'sample')
-raw_fname = os.path.join(data_dir, 'sample_audvis_raw.fif')
-
-raw = mne.io.read_raw_fif(raw_fname, verbose=False)
-# pick some MEG and EEG channels after cropping
-raw = raw.copy().crop(0, 200).pick([0, 1, 330, 331, 332])
-
-frequency_bands = {'alpha': (8.0, 15.0), 'beta': (15.0, 30.0)}
-
-features, _ = compute_features(raw, frequency_bands=frequency_bands)
+```
+@article{sabbagh2020predictive,
+  title={Predictive regression modeling with MEG/EEG: from source power to signals and cognitive states},
+  author={Sabbagh, David and Ablin, Pierre and Varoquaux, Ga{\"e}l and Gramfort, Alexandre and Engemann, Denis A},
+  journal={NeuroImage},
+  volume={222},
+  pages={116893},
+  year={2020},
+  publisher={Elsevier}
+}
 ```
 
-### make_filter_bank_models
+Please cite additional references highlighted in the documentation of specific functions and tutorials when using these functions and examples. 
 
-The following models are implemented:
-
-- riemann
-- lw_riemann
-- diag
-- logdiag
-- random
-- naive
-- spoc
-- riemann_wass
-- dummy
-
-Use case example:
-
-```python
-import numpy as np
-import pandas as pd
-from coffeine import make_filter_bank_regressor
-
-freq_bands = {'alpha': (8.0, 15.0), 'beta': (15.0, 30.0)}
-n_freq_bands = len(freq_bands)
-n_subjects = 10
-n_channels = 4
-
-# Make toy data
-X_cov = np.random.randn(n_subjects, n_freq_bands, n_channels, n_channels)
-for sub in range(n_subjects):
-    for fb in range(n_freq_bands):
-        X_cov[sub, fb] = X_cov[sub, fb] @ X_cov[sub, fb].T
-X_df = pd.DataFrame(
-  {band: list(X_cov[:, ii]) for ii, band in enumerate(freq_bands)})
-X_df['drug'] = np.random.randint(2, size=n_subjects)
-y = np.random.randn(len(X_df))
-
-# Models
-fb_model = make_filter_bank_regressor(names=freq_bands.keys(),
-                                      method='riemann')
-fb_model.fit(X_df, y)
-```
-
-## Cite
-
-If you use this code please cite:
-
-  D. Sabbagh, P. Ablin, G. Varoquaux, A. Gramfort, and D.A. Engemann.
-  Predictive regression modeling with MEG/EEG: from source power
-  to signals and cognitive states.
-  *NeuroImage*, page 116893,2020. ISSN 1053-8119.
-  https://www.sciencedirect.com/science/article/pii/S1053811920303797
+Please also cite the upstream software this package is building on, in particular [PyRiemann](https://pyriemann.readthedocs.io/).
