@@ -16,6 +16,11 @@ from coffeine.spatial_filters import (
     ProjRandomSpace,
     ProjSPoCSpace)
 
+from coffeine.transfer_learning import (
+    ReCenter,
+    ReScale
+)
+
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.compose import make_column_transformer
 from sklearn.pipeline import make_pipeline, Pipeline
@@ -142,6 +147,8 @@ class KernelSum(BaseEstimator, TransformerMixin):
 def make_filter_bank_transformer(
         names: list[str],
         method: str = 'riemann',
+        alignment: Union[list[str], None] = None,
+        domains: Union[list[str], None] = None,
         projection_params: Union[dict, None] = None,
         vectorization_params: Union[dict, None] = None,
         kernel: Union[str, Pipeline, None] = None,
@@ -184,6 +191,9 @@ def make_filter_bank_transformer(
         to ``'riemann'``. Can be ``'riemann'``, ``'lw_riemann'``, ``'diag'``,
         ``'log_diag'``, ``'random'``, ``'naive'``, ``'spoc'``,
         ``'riemann_wasserstein'``.
+    alignment : list of str | None
+        Alignment steps to include in the pipeline. Can be ``'re-center'``,
+        ``'re-scale'``.
     projection_params : dict | None
         The parameters for the projection step.
     vectorization_params : dict | None
@@ -249,13 +259,22 @@ def make_filter_bank_transformer(
     if vectorization_params is not None:
         vectorization_params_.update(**vectorization_params)
 
-    def _get_projector_vectorizer(projection, vectorization,  kernel=None):
+    def _get_projector_vectorizer(projection, vectorization,
+                                  alignment_steps=None,
+                                  kernel=None):
         out = list()
         for name in names:
-            steps = [
-                projection(**projection_params_),
-                vectorization(**vectorization_params_)
-            ]
+            if alignment is None:
+                steps = [
+                    projection(**projection_params_),
+                    vectorization(**vectorization_params_)
+                ]
+            else:
+                steps = [
+                    projection(**projection_params_)
+                ] + alignment_steps + [
+                    vectorization(**vectorization_params_)
+                ]
             if kernel is not None:
                 kernel_name, kernel_estimator = kernel
                 steps.append(kernel_estimator())
@@ -282,6 +301,15 @@ def make_filter_bank_transformer(
     elif method == 'riemann_wasserstein':
         steps = (ProjIdentitySpace, RiemannSnp)
 
+    # add alignment options
+    alignment_steps = []
+    if alignment is None:
+        alignment_steps = None
+    elif 're-center' in alignment:
+        alignment_steps.append(ReCenter(domains=domains))
+    elif 're-scale' in alignment:
+        alignment_steps.append(ReScale(domains=domains))
+
     # add Kernel options
     if (isinstance(kernel, Pipeline) and not
             isinstance(kernel, (BaseEstimator, TransformerMixin))):
@@ -295,7 +323,8 @@ def make_filter_bank_transformer(
         combine_kernels = 'sum'
 
     filter_bank_transformer = make_column_transformer(
-        *_get_projector_vectorizer(*steps, kernel=kernel),
+        *_get_projector_vectorizer(*steps, alignment_steps=alignment_steps,
+                                   kernel=kernel),
         remainder='passthrough'
     )
 
