@@ -92,19 +92,35 @@ html_theme_options = {
   "header_links_before_dropdown": 4,
   "navbar_end": ["theme-switcher", "navbar-icon-links"],
   "external_links": [
-    {
-        "url": "https://pyriemann.readthedocs.io",
-        "name": "PyRiemann",
-    },
-    {
-        "url": "https://scikit-learn.org",
-        "name": "scikit-learn",
-    },
-    {
-        "url": "https://mne.tools",
-        "name": "MNE-Python"
-    }
-],
+        {
+            "url": "https://pyriemann.readthedocs.io",
+            "name": "PyRiemann",
+        },
+        {
+            "url": "https://scikit-learn.org",
+            "name": "scikit-learn",
+        },
+        {
+            "url": "https://mne.tools",
+            "name": "MNE-Python"
+        }
+    ],
+    "icon_links": [
+        {
+            'name': "GitHub",
+            'url': "https://github.com/coffeine-labs/coffeine",
+            'icon': "fa-brands fa-square-github",
+        }
+    ],
+    "icon_links_label": "External Links",  # for screen reader
+    "use_edit_page_button": True,
+    "navigation_with_keys": False
 }
 
-html_context = {"default_mode": "light"}
+html_context = {
+    "default_mode": "light",
+    "github_user": "coffeine-labs",
+    "github_repo": "coffeine",
+    "github_version": "main",
+    "doc_path": "doc"
+}
