@@ -31,31 +31,80 @@ class ReCenter(BaseEstimator, TransformerMixin):
 
     Parameters
     ----------
-        metric : str, default='riemann'
-            The metric to compute the mean.
+    metric : str, default='riemann'
+        The metric to compute the mean.
     """
     def __init__(self, domains, metric='riemann'):
         self.domains = domains
         self.metric = metric
-        self.re_center = TLCenter('target_domain', metric=self.metric)
 
     def fit(self, X, y):
+        """Fit ReCenter.
+
+        Mean of each domain are calculated with TLCenter from
+        pyRiemann.
+
+        Parameters
+        ----------
+        X : ndarray, shape (n_matrices, n_channels, n_channels)
+            Set of SPD matrices.
+        y: ndarray, shape (n_matrices,)
+            Labels for each matrix.
+        Returns
+        -------
+        self : ReCenter instance
+        """
         X = _check_data(X)
         _, y_enc = encode_domains(X, y, self.domains)
-        self.means = self.re_center.fit(X, y_enc).recenter_
+        self.re_center_ = TLCenter('target_domain', metric=self.metric)
+        self.means_ = self.re_center_.fit(X, y_enc).recenter_
         return self
 
     def transform(self, X, y=None):
+        """Re-center the test data.
+
+        Calculate the mean and then transform the data.
+        It is assumed that data points in X are all from the same domain
+        and that this domain is not present in the data used in fit.
+
+        Parameters
+        ----------
+        X : ndarray, shape (n_matrices, n_channels, n_channels)
+            Set of SPD matrices.
+        y: ndarray, shape (n_matrices,)
+            Labels for each matrix.
+        Returns
+        -------
+        X_rct : ndarray, shape (n_matrices, n_channels, n_channels)
+            Set of SPD matrices with mean at the Identity.
+        """
         X = _check_data(X)
         n_sample = X.shape[0]
         _, y_enc = encode_domains(X, [0]*n_sample, ['target_domain']*n_sample)
-        X_rct = self.re_center.fit_transform(X, y_enc)
+        X_rct = self.re_center_.fit_transform(X, y_enc)
         return X_rct
 
     def fit_transform(self, X, y):
+        """Fit ReCenter and transform the data.
+
+        Calculate the mean of each domain with TLCenter from pyRiemann and
+        then transform the data.
+
+        Parameters
+        ----------
+        X : ndarray, shape (n_matrices, n_channels, n_channels)
+            Set of SPD matrices.
+        y: ndarray, shape (n_matrices,)
+            Labels for each matrix.
+        Returns
+        -------
+        X_rct : ndarray, shape (n_matrices, n_channels, n_channels)
+            Set of SPD matrices with mean at the Identity.
+        """
         X = _check_data(X)
         _, y_enc = encode_domains(X, y, self.domains)
-        X_rct = self.re_center.fit_transform(X, y_enc)
+        self.re_center_ = TLCenter('target_domain', metric=self.metric)
+        X_rct = self.re_center_.fit_transform(X, y_enc)
         return X_rct
 
 
@@ -71,17 +120,17 @@ class ReScale(BaseEstimator, TransformerMixin):
     Parameters
     ----------
     metric : str, default='riemann'
-        The metric to compute the mean.
+        The metric to compute the dispersion.
     """
-    def __init__(self, domains, metric):
+    def __init__(self, domains, metric='riemann'):
         self.domains = domains
         self.metric = metric
-        self.re_scale = TLStretch('target_domain',
-                                  center_data=True,
-                                  metric=self.metric)
 
     def fit(self, X, y):
-        """
+        """Fit ReScale.
+
+        Dispersions around the mean of each domain are calculated with
+        TLStretch from pyRiemann.
 
         Parameters
         ----------
@@ -89,27 +138,63 @@ class ReScale(BaseEstimator, TransformerMixin):
             Set of SPD matrices.
         y: ndarray, shape (n_matrices,)
             Labels for each matrix.
-        domains: ndarray, shape (n_matrices,)
-            Domains for each matrix.
-
         Returns
         -------
-        self : ReCenter instance
+        self : ReScale instance
         """
         X = _check_data(X)
         _, y_enc = encode_domains(X, y, self.domains)
-        self.means = self.re_scale.fit(X, y_enc).recenter_
+        self.re_scale_ = TLStretch('target_domain',
+                                   center_data=True,
+                                   metric=self.metric)
+        self.dispersions_ = self.re_scale_.fit(X, y_enc).dispersions_
         return self
 
     def transform(self, X, y=None):
+        """Re-scale the test data.
+
+        Calculate the dispersion around the mean iand then transform the data.
+        It is assumed that data points in X are all from the same domain
+        and that this domain is not present in the data used in fit.
+
+        Parameters
+        ----------
+        X : ndarray, shape (n_matrices, n_channels, n_channels)
+            Set of SPD matrices.
+        y: ndarray, shape (n_matrices,)
+            Labels for each matrix.
+        Returns
+        -------
+        X_str : ndarray, shape (n_matrices, n_channels, n_channels)
+            Set of SPD matrices with a dispersion equal to 1.
+        """
         X = _check_data(X)
         n_sample = X.shape[0]
         _, y_enc = encode_domains(X, [0]*n_sample, ['target_domain']*n_sample)
-        X_str = self.re_scale.fit_transform(X, y_enc)
+        X_str = self.re_scale_.fit_transform(X, y_enc)
         return X_str
 
     def fit_transform(self, X, y):
+        """Fit ReScale and transform the data.
+
+        Calculate the dispersions around the mean of each domain with
+        TLStretch from pyRiemann and then transform the data.
+
+        Parameters
+        ----------
+        X : ndarray, shape (n_matrices, n_channels, n_channels)
+            Set of SPD matrices.
+        y: ndarray, shape (n_matrices,)
+            Labels for each matrix.
+        Returns
+        -------
+        X_str : ndarray, shape (n_matrices, n_channels, n_channels)
+            Set of SPD matrices with a dispersion equal to 1.
+        """
         X = _check_data(X)
         _, y_enc = encode_domains(X, y, self.domains)
-        X_str = self.re_scale.fit_transform(X, y_enc)
+        self.re_scale_ = TLStretch('target_domain',
+                                   center_data=True,
+                                   metric=self.metric)
+        X_str = self.re_scale_.fit_transform(X, y_enc)
         return X_str
