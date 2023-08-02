@@ -264,7 +264,7 @@ def make_filter_bank_transformer(
                                   kernel=None):
         out = list()
         for name in names:
-            if alignment is None:
+            if alignment_steps is None:
                 steps = [
                     projection(**projection_params_),
                     vectorization(**vectorization_params_)
@@ -305,10 +305,11 @@ def make_filter_bank_transformer(
     alignment_steps = []
     if alignment is None:
         alignment_steps = None
-    elif 're-center' in alignment:
-        alignment_steps.append(ReCenter(domains=domains))
-    elif 're-scale' in alignment:
-        alignment_steps.append(ReScale(domains=domains))
+    else:
+        if 're-center' in alignment:
+            alignment_steps.append(ReCenter(domains=domains))
+        if 're-scale' in alignment:
+            alignment_steps.append(ReScale(domains=domains))
 
     # add Kernel options
     if (isinstance(kernel, Pipeline) and not

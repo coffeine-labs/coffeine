@@ -145,7 +145,7 @@ class ReScale(BaseEstimator, TransformerMixin):
         X = _check_data(X)
         _, y_enc = encode_domains(X, y, self.domains)
         self.re_scale_ = TLStretch('target_domain',
-                                   center_data=True,
+                                   centered_data=True,
                                    metric=self.metric)
         self.dispersions_ = self.re_scale_.fit(X, y_enc).dispersions_
         return self
@@ -194,7 +194,7 @@ class ReScale(BaseEstimator, TransformerMixin):
         X = _check_data(X)
         _, y_enc = encode_domains(X, y, self.domains)
         self.re_scale_ = TLStretch('target_domain',
-                                   center_data=True,
+                                   centered_data=True,
                                    metric=self.metric)
         X_str = self.re_scale_.fit_transform(X, y_enc)
         return X_str
