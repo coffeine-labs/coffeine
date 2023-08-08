@@ -259,22 +259,26 @@ def make_filter_bank_transformer(
     if vectorization_params is not None:
         vectorization_params_.update(**vectorization_params)
 
+    alignment_params_ = dict(domains=domains)
+
     def _get_projector_vectorizer(projection, vectorization,
-                                  alignment_steps=None,
+                                  recenter, rescale, rotation,
                                   kernel=None):
         out = list()
         for name in names:
-            if alignment_steps is None:
-                steps = [
-                    projection(**projection_params_),
-                    vectorization(**vectorization_params_)
-                ]
-            else:
-                steps = [
-                    projection(**projection_params_)
-                ] + alignment_steps + [
-                    vectorization(**vectorization_params_)
-                ]
+            steps = [projection(**projection_params_)]
+
+            if recenter is not None:
+                steps.append(recenter(**alignment_params_))
+
+            if rescale is not None:
+                steps.append(rescale(**alignment_params_))
+
+            steps.append(vectorization(**vectorization_params_))
+
+            if rotation is not None:
+                steps.append(rotation(**alignment_params_))
+
             if kernel is not None:
                 kernel_name, kernel_estimator = kernel
                 steps.append(kernel_estimator())
@@ -302,14 +306,15 @@ def make_filter_bank_transformer(
         steps = (ProjIdentitySpace, RiemannSnp)
 
     # add alignment options
-    alignment_steps = []
-    if alignment is None:
-        alignment_steps = None
-    else:
-        if 're-center' in alignment:
-            alignment_steps.append(ReCenter(domains=domains))
-        if 're-scale' in alignment:
-            alignment_steps.append(ReScale(domains=domains))
+    alignment_steps = {
+        'recenter': None,
+        'rescale': None,
+        'rotation': None
+    }
+    if isinstance(alignment, list) and 're-center' in alignment:
+        alignment_steps['recenter'] = ReCenter
+    if isinstance(alignment, list) and 're-scale' in alignment:
+        alignment_steps['rescale'] = ReScale
 
     # add Kernel options
     if (isinstance(kernel, Pipeline) and not
@@ -324,7 +329,7 @@ def make_filter_bank_transformer(
         combine_kernels = 'sum'
 
     filter_bank_transformer = make_column_transformer(
-        *_get_projector_vectorizer(*steps, alignment_steps=alignment_steps,
+        *_get_projector_vectorizer(*steps, **alignment_steps,
                                    kernel=kernel),
         remainder='passthrough'
     )
