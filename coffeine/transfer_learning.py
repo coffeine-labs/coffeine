@@ -260,7 +260,6 @@ class ReScale(BaseEstimator, TransformerMixin):
         """
         X = _check_data(X)
         _, y_enc = encode_domains(X, y, self.domains)
-        print(pyriemann.__version__)
         if pyriemann.__version__ != '0.6':
             self.re_scale_ = TLStretch_patch(
                 'target_domain', centered_data=False, metric=self.metric
