@@ -1,4 +1,8 @@
 import numpy as np
+import pyriemann
+from pyriemann.transfer._tools import decode_domains
+from pyriemann.utils.mean import mean_riemann
+from pyriemann.utils.distance import distance
 from pyriemann.transfer import TLCenter, TLStretch, encode_domains
 from sklearn.base import BaseEstimator, TransformerMixin
 
@@ -19,6 +23,54 @@ def _check_data(X):
             assert out.shape[0] == out.shape[1]
             out = out[np.newaxis, :, :]
     return out
+
+
+class TLStretch_patch(TLStretch):
+    """Patched function of TLStretch.
+
+    To use in ReScale when pyRiemann version is lower than 0.6"""
+
+    def __init__(self, target_domain, final_dispersion=1.0,
+                 centered_data=False, metric='riemann'):
+        super().__init__(target_domain, final_dispersion,
+                         centered_data, metric)
+
+    def fit(self, X, y_enc):
+        """Fit TLStretch_patch.
+
+        Calculate the dispersion around the mean for each domain.
+
+        Parameters
+        ----------
+        X : ndarray, shape (n_matrices, n_channels, n_channels)
+            Set of SPD matrices.
+        y_enc : ndarray, shape (n_matrices,)
+            Extended labels for each matrix.
+
+        Returns
+        -------
+        self : TLStretch_patch instance
+            The TLStretch_patch instance.
+        """
+
+        _, _, domains = decode_domains(X, y_enc)
+        n_dim = X[0].shape[1]
+        self._means = {}
+        self.dispersions_ = {}
+        for d in np.unique(domains):
+            if self.centered_data:
+                self._means[d] = np.eye(n_dim)
+            else:
+                self._means[d] = mean_riemann(X[domains == d])
+            disp_domain = distance(
+                X[domains == d],
+                self._means[d],
+                metric=self.metric,
+                squared=True,
+            ).mean()
+            self.dispersions_[d] = disp_domain
+
+        return self
 
 
 class ReCenter(BaseEstimator, TransformerMixin):
@@ -145,9 +197,14 @@ class ReScale(BaseEstimator, TransformerMixin):
         """
         X = _check_data(X)
         _, y_enc = encode_domains(X, y, self.domains)
-        self.re_scale_ = TLStretch('target_domain',
-                                   centered_data=False,
-                                   metric=self.metric)
+        if pyriemann.__version__ != '0.6':
+            self.re_scale_ = TLStretch_patch(
+                'target_domain', centered_data=False, metric=self.metric
+            )
+        else:
+            self.re_scale_ = TLStretch(
+                'target_domain', centered_data=False, metric=self.metric
+            )
         self.dispersions_ = self.re_scale_.fit(X, y_enc).dispersions_
         return self
 
@@ -172,9 +229,14 @@ class ReScale(BaseEstimator, TransformerMixin):
         X = _check_data(X)
         n_sample = X.shape[0]
         _, y_enc = encode_domains(X, [0]*n_sample, ['target_domain']*n_sample)
-        self.re_scale_ = TLStretch('target_domain',
-                                   centered_data=False,
-                                   metric=self.metric)
+        if pyriemann.__version__ != '0.6':
+            self.re_scale_ = TLStretch_patch(
+                'target_domain', centered_data=False, metric=self.metric
+            )
+        else:
+            self.re_scale_ = TLStretch(
+                'target_domain', centered_data=False, metric=self.metric
+            )
         self.re_scale_.fit(X, y_enc)
         X_str = self.re_scale_.transform(X)
         return X_str
@@ -198,8 +260,14 @@ class ReScale(BaseEstimator, TransformerMixin):
         """
         X = _check_data(X)
         _, y_enc = encode_domains(X, y, self.domains)
-        self.re_scale_ = TLStretch('target_domain',
-                                   centered_data=False,
-                                   metric=self.metric)
+        print(pyriemann.__version__)
+        if pyriemann.__version__ != '0.6':
+            self.re_scale_ = TLStretch_patch(
+                'target_domain', centered_data=False, metric=self.metric
+            )
+        else:
+            self.re_scale_ = TLStretch(
+                'target_domain', centered_data=False, metric=self.metric
+            )
         X_str = self.re_scale_.fit_transform(X, y_enc)
         return X_str

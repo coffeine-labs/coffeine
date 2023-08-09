@@ -51,12 +51,12 @@ def test_rescale():
     X_test_str = str.transform(X_test)
     # Test if dispersion = 1
     M_train = mean_covariance(X_train_str, metric='riemann')
-    disp_train = np.sum(
+    disp_train = np.mean(
         distance(X_train_str, M_train, metric='riemann')**2
-    ) / X_train_str.shape[0]
+    )
     assert np.isclose(disp_train, 1.0)
     M_test = mean_covariance(X_test_str, metric='riemann')
-    disp_test = np.sum(
+    disp_test = np.mean(
         distance(X_test_str, M_test, metric='riemann')**2
-    ) / X_test_str.shape[0]
+    )
     assert np.isclose(disp_test, 1.0)
