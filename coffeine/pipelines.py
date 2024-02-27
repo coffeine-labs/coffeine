@@ -306,8 +306,8 @@ def make_filter_bank_transformer(
 
     # add alignment options
     alignment_steps = {
-        're-center': None,
-        're-scale': None
+        'recenter': None,
+        'rescale': None
     }
     if isinstance(alignment, list) and 're-center' in alignment:
         alignment_steps['re-center'] = ReCenter
