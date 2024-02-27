@@ -264,7 +264,7 @@ def make_filter_bank_transformer(
     alignment_params_ = dict(domains=domains)
 
     def _get_projector_vectorizer(projection, vectorization,
-                                  recenter, rescale, rotation,
+                                  recenter, rescale,
                                   kernel=None):
         out = list()
         for name in names:
@@ -277,9 +277,6 @@ def make_filter_bank_transformer(
                 steps.append(rescale(**alignment_params_))
 
             steps.append(vectorization(**vectorization_params_))
-
-            if rotation is not None:
-                steps.append(rotation(**alignment_params_))
 
             if kernel is not None:
                 kernel_name, kernel_estimator = kernel
@@ -310,8 +307,7 @@ def make_filter_bank_transformer(
     # add alignment options
     alignment_steps = {
         'recenter': None,
-        'rescale': None,
-        'rotation': None
+        'rescale': None
     }
     if isinstance(alignment, list) and 're-center' in alignment:
         alignment_steps['recenter'] = ReCenter
