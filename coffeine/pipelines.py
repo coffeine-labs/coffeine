@@ -310,9 +310,9 @@ def make_filter_bank_transformer(
         'rescale': None
     }
     if isinstance(alignment, list) and 're-center' in alignment:
-        alignment_steps['re-center'] = ReCenter
+        alignment_steps['recenter'] = ReCenter
     if isinstance(alignment, list) and 're-scale' in alignment:
-        alignment_steps['re-scale'] = ReScale
+        alignment_steps['rescale'] = ReScale
 
     # add Kernel options
     if (isinstance(kernel, Pipeline) and not
