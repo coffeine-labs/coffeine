@@ -21,11 +21,14 @@ from coffeine.transfer_learning import (
     ReScale
 )
 
+import sklearn
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.compose import make_column_transformer
 from sklearn.pipeline import make_pipeline, Pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import RidgeCV, LogisticRegression
+
+sklearn.set_config(enable_metadata_routing=True)
 
 
 class GaussianKernel(BaseEstimator, TransformerMixin):
@@ -148,7 +151,6 @@ def make_filter_bank_transformer(
         names: list[str],
         method: str = 'riemann',
         alignment: Union[list[str], None] = None,
-        domains: Union[list[str], None] = None,
         projection_params: Union[dict, None] = None,
         vectorization_params: Union[dict, None] = None,
         kernel: Union[str, Pipeline, None] = None,
@@ -194,8 +196,6 @@ def make_filter_bank_transformer(
     alignment : list of str | None
         Alignment steps to include in the pipeline. Can be ``'re-center'``,
         ``'re-scale'``.
-    domains : list of str | None
-        Domains for each matrix.
     projection_params : dict | None
         The parameters for the projection step.
     vectorization_params : dict | None
@@ -261,8 +261,6 @@ def make_filter_bank_transformer(
     if vectorization_params is not None:
         vectorization_params_.update(**vectorization_params)
 
-    alignment_params_ = dict(domains=domains)
-
     def _get_projector_vectorizer(projection, vectorization,
                                   recenter, rescale,
                                   kernel=None):
@@ -271,11 +269,18 @@ def make_filter_bank_transformer(
             steps = [projection(**projection_params_)]
 
             if recenter is not None:
-                steps.append(recenter(**alignment_params_))
+                steps.append(
+                    recenter().set_fit_request(
+                        domains=True
+                    ).set_transform_request(domains=True)
+                )
 
             if rescale is not None:
-                steps.append(rescale(**alignment_params_))
-
+                steps.append(
+                    rescale().set_fit_request(
+                        domains=True
+                    ).set_transform_request(domains=True)
+                )
             steps.append(vectorization(**vectorization_params_))
 
             if kernel is not None:
@@ -348,7 +353,6 @@ def make_filter_bank_regressor(
         names: list[str],
         method: str = 'riemann',
         alignment: Union[list[str], None] = None,
-        domains: Union[list[str], None] = None,
         projection_params: Union[dict, None] = None,
         vectorization_params: Union[dict, None] = None,
         categorical_interaction: Union[bool, None] = None,
@@ -394,8 +398,6 @@ def make_filter_bank_regressor(
     alignment : list of str | None
         Alignment steps to include in the pipeline. Can be ``'re-center'``,
         ``'re-scale'``.
-    domains : list of str | None
-        Domains for each matrix.
     projection_params : dict | None
         The parameters for the projection step.
     vectorization_params : dict | None
@@ -419,7 +421,7 @@ def make_filter_bank_regressor(
         https://doi.org/10.1016/j.neuroimage.2020.116893
     """
     filter_bank_transformer = make_filter_bank_transformer(
-        names=names, method=method, alignment=alignment, domains=domains,
+        names=names, method=method, alignment=alignment,
         projection_params=projection_params,
         vectorization_params=vectorization_params,
         categorical_interaction=categorical_interaction
@@ -446,7 +448,6 @@ def make_filter_bank_classifier(
         names: list[str],
         method: str = 'riemann',
         alignment: Union[list[str], None] = None,
-        domains: Union[list[str], None] = None,
         projection_params: Union[dict, None] = None,
         vectorization_params: Union[dict, None] = None,
         categorical_interaction: Union[bool, None] = None,
@@ -492,8 +493,6 @@ def make_filter_bank_classifier(
     alignment : list of str | None
         Alignment steps to include in the pipeline. Can be ``'re-center'``,
         ``'re-scale'``.
-    domains : list of str | None
-        Domains for each matrix.
     projection_params : dict | None
         The parameters for the projection step.
     vectorization_params : dict | None
@@ -518,7 +517,7 @@ def make_filter_bank_classifier(
 
     """
     filter_bank_transformer = make_filter_bank_transformer(
-        names=names, method=method,  alignment=alignment, domains=domains,
+        names=names, method=method,  alignment=alignment,
         projection_params=projection_params,
         vectorization_params=vectorization_params,
         categorical_interaction=categorical_interaction
