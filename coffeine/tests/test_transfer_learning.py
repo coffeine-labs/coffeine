@@ -22,9 +22,10 @@ def test_recenter():
     ]
     X_train, y_train = X[train_index], y[train_index]
     X_test = X[test_index]
-    rct = ReCenter(domains[train_index], metric='riemann')
-    X_train_rct = rct.fit_transform(X_train, y_train)
-    X_test_rct = rct.transform(X_test)
+    rct = ReCenter(metric='riemann')
+    X_train_rct = rct.fit_transform(X_train, y_train,
+                                    domains=domains[train_index])
+    X_test_rct = rct.transform(X_test, domains=domains[test_index])
     # Test if mean is Identity
     M_train = mean_covariance(X_train_rct, metric='riemann')
     assert M_train == pytest.approx(np.eye(2))
@@ -46,9 +47,9 @@ def test_rescale():
     ]
     X_train, y_train = X[train_index], y[train_index]
     X_test = X[test_index]
-    str = ReScale(domains[train_index], metric='riemann')
-    X_train_str = str.fit_transform(X_train, y_train)
-    X_test_str = str.transform(X_test)
+    str = ReScale(metric='riemann')
+    X_train_str = str.fit_transform(X_train, y_train, domains[train_index])
+    X_test_str = str.transform(X_test, domains[test_index])
     # Test if dispersion = 1
     M_train = mean_covariance(X_train_str, metric='riemann')
     disp_train = np.mean(
