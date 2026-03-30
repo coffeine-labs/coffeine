@@ -2,7 +2,12 @@ from typing import Union
 import numpy as np
 import pandas as pd
 from scipy.stats import trim_mean
-from pyriemann.estimation import CospCovariances
+try:
+    from pyriemann.estimation import CospCovariances
+except ImportError:
+    # CospCovariances was renamed to CoSpectra in pyriemann 0.6
+    # and removed in pyriemann 0.7 (PR #327)
+    from pyriemann.estimation import CoSpectra as CospCovariances
 import mne
 from mne.io import BaseRaw
 from mne.epochs import BaseEpochs
