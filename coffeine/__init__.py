@@ -29,3 +29,5 @@ from .pipelines import make_filter_bank_transformer, make_filter_bank_regressor,
 from .power_features import compute_features, get_frequency_bands, compute_coffeine, make_coffeine_data_frame  # noqa
 
 from .spatial_filters import ProjIdentitySpace, ProjCommonSpace, ProjLWSpace, ProjRandomSpace, ProjSPoCSpace  # noqa
+
+from .transfer_learning import ReCenter, ReScale  # noqa
